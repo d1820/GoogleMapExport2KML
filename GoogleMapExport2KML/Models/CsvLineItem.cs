@@ -108,8 +108,8 @@ public class Point
             //0x8728a32cc0f42b29:0x9401773f7a022a97
             var data = url.Split("!1s").Last();
             var coords = data.Split(":");
-            var latitude = coords[0].ConvertFromHex().ConvertToCoordinate();
-            var longitude = coords[1].ConvertFromHex().ConvertToCoordinate();
+            var latitude = coords[0].GetLatitude();
+            var longitude = coords[1].GetLongitude();
             return new ParsePointResult { Point = new Point($"{latitude},{longitude}") };
         }
         return new ParsePointResult { ErrorMessage = $"Url does not match any existing parser. Skipping Point Parsing. Url: {url}" };
