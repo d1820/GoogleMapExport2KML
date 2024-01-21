@@ -1,4 +1,5 @@
 using System.Xml.Serialization;
+using CsvHelper.Configuration;
 using GoogleMapExport2KML.Extensions;
 
 namespace GoogleMapExport2KML.Models;
@@ -10,7 +11,32 @@ public class CsvLineItem
     public string Comment { get; set; }
 }
 
+public class CsvLineItemError
+{
+    public int RowIndex { get; set; }
+    public int ColumnIndex { get; set; }
+    public string Row { get; set; }
+    public string Error { get; set; }
+}
 
+public class CsvLineItemResponse
+{
+
+    public IAsyncEnumerable<CsvLineItem> Results { get; set; }
+    public IEnumerable<CsvLineItemError> Errors { get; set; }
+    public bool HasErrors => Errors?.Any() == true;
+}
+
+public sealed class CsvLineItemMap : ClassMap<CsvLineItem>
+{
+    public CsvLineItemMap()
+    {
+        Map(m => m.Title);
+        Map(m => m.Note);
+        Map(m => m.URL);
+        Map(m => m.Comment);
+    }
+}
 
 /*
  <kml xmlns#"http://www.opengis.net/kml/2.50">

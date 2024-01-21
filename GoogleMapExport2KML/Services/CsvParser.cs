@@ -1,28 +1,74 @@
-using System;
-using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
-using GoogleMapExport2KML.Mappings;
+using CsvHelper;
+using CsvHelper.Configuration;
 using GoogleMapExport2KML.Models;
-using TinyCsvParser;
-using TinyCsvParser.Mapping;
+
 
 namespace GoogleMapExport2KML.Services;
 public class CsvParser
 {
-    private CsvParser<CsvLineItem> _csvParser;
+    private Regex _lineEndingRegex;
+    private Regex _newlineRegex;
 
     public CsvParser()
     {
-        CsvParserOptions csvParserOptions = new CsvParserOptions(true, ',');
-        var csvMapper = new CsvLineItemMapping();
-        _csvParser = new CsvParser<CsvLineItem>(csvParserOptions, csvMapper);
-
-
+        _lineEndingRegex = new Regex($",\\n", RegexOptions.Multiline);
+        _newlineRegex = new Regex($"\\n");
     }
 
-    public ReadOnlyCollection<CsvMappingResult<CsvLineItem>> Parse(string filename)
+    public async Task<CsvLineItemResponse> ParseAsync(string fileName)
     {
-        return _csvParser.ReadFromFile(filename, System.Text.Encoding.ASCII).ToList().AsReadOnly();
+        //var content = File.ReadAllText(fileName);
+        //var lines = _lineEndingRegex.Split(content).ToList();
+
+        //for (var i = 0; i < lines.Count; i++)
+        //{
+        //    if (i == 0)
+        //    {
+        //        //get rid of header
+        //        lines[i] = lines[i].Replace("Title,Note,URL,Comment\n", "");
+        //    }
+        //    lines[i] = _newlineRegex.Replace(lines[i], " ");
+        //}
+
+        //var cleanedContent = string.Join(Environment.NewLine, lines);
+        //clean it
+        var errors = new List<CsvLineItemError>();
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            HasHeaderRecord = true,
+            LineBreakInQuotedFieldIsBadData = false,
+            BadDataFound = null,
+            ReadingExceptionOccurred = (ReadingExceptionOccurredArgs args) =>
+            {
+                var ex = args.Exception;
+                errors.Add(new CsvLineItemError
+                {
+                    RowIndex = ex.Context.Parser.RawRow,
+                    Row = ex.Context.Parser.RawRecord,
+                    Error = ex.Message,
+                    ColumnIndex = ex.Context.Reader.CurrentIndex
+                });
+                return true;
+            },
+            MissingFieldFound = (MissingFieldFoundArgs args) =>
+            {
+                Console.WriteLine(args.ToString());
+            },
+        };
+        var response = new CsvLineItemResponse();
+
+        using (var reader = new StreamReader(fileName))
+        using (var csv = new CsvReader(reader, config))
+        {
+            csv.Context.RegisterClassMap<CsvLineItemMap>();
+            response.Results = csv.GetRecordsAsync<CsvLineItem>();
+        }
+        response.Errors = errors;
+
+        return response;
     }
 }
 public class KMLService
