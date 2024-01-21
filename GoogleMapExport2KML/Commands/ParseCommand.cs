@@ -52,30 +52,29 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
         }
     }
 
-    public async override Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
         var status = 0;
-        AnsiConsole.Status()
+        await AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
             .SpinnerStyle(Style.Parse("green bold"))
             .StartAsync("Parsing CSV files", async ctx =>
             {
+                ctx.Refresh();
                 var allItems = new List<CsvLineItemResponse>();
                 var tasks = new List<Task<CsvLineItemResponse>>();
                 foreach (var file in settings.Files)
                 {
                     var fi = new FileInfo(file);
                     AnsiConsole.MarkupLine($"Parsing file {fi.Name}");
+                    ctx.Refresh();
                     tasks.Add(_csvParser.ParseAsync(file));
                 }
 
                 var results = await Task.WhenAll(tasks);
-                    foreach (var result in results)
-                    {
 
-                    }
+                var csvErrors = results.Where(w => w.HasErrors).SelectMany(s => s.Errors).ToList();
 
-                var csvErrors = results.Where(w => !w.HasErrors).ToList();
                 if (settings.StopOnError && csvErrors.Any())
                 {
                     DisplayErrorTable(csvErrors, "CSV Parsing Errors");
@@ -87,35 +86,36 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
                 ctx.Status("Building KML output");
                 ctx.Spinner(Spinner.Known.Circle);
                 ctx.SpinnerStyle(Style.Parse("blue"));
+                ctx.Refresh();
                 var kml = new Kml();
 
-
-
-                foreach (var line in allItems)
+                foreach (var line in results.Where(w => !w.HasErrors).SelectMany(s => s.Results))
                 {
                     var pm = Map(line, settings.IncludeCommentInDescription);
                     if (pm.HasError)
                     {
                         csvErrors.Add(new CsvLineItemError
                         {
-                            RowIndex = line.RowIndex,
-                            Error = new CsvMappingError { ColumnIndex = 3, Value = pm.ErrorMessage }
+                            RowIndex = line.RowNumber,
+                            Error = pm.ErrorMessage
                         });
                         continue;
                     }
                     kml.Placemarks.Add(pm.Placemark!);
+
                 }
 
-                //if (settings.StopOnError && csvErrors.Any())
-                //{
-                //    DisplayErrorTable(csvErrors, "Placemark Parsing Errors");
-                //    status = -1;
-                //    return;
-                //}
+                if (settings.StopOnError && csvErrors.Any())
+                {
+                    DisplayErrorTable(csvErrors, "Placemark Parsing Errors");
+                    status = -1;
+                    return;
+                }
 
                 ctx.Status("Generating KML output");
                 ctx.Spinner(Spinner.Known.Circle);
                 ctx.SpinnerStyle(Style.Parse("blue"));
+                ctx.Refresh();
                 var outFilePath = settings.OutputFileName;
                 if (!File.Exists(settings.OutputFileName))
                 {
@@ -141,15 +141,9 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
         table.AddColumn("Error");
         table.AddColumn("Row");
 
-
-    //       public int RowIndex { get; set; }
-    //public int ColumnIndex { get; set; }
-    //public string Row { get; set; }
-    //public string Error { get; set; }
-
         foreach (var line in csvErrors)
         {
-            table.AddRow(line);
+            table.AddRow(line.RowIndex.ToString(), line.ColumnIndex.ToString(), line.Error, line.Row);
         }
 
         AnsiConsole.Write(table);
@@ -158,13 +152,27 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
     public PlacemarkResult Map(CsvLineItem csv, bool includeComment)
     {
         var desc = csv.Note;
+        if (csv.URL.Contains("/place/"))
+        {
+            var name = csv.URL.Split("/").TakeLast(2).First().Replace("+", " ");
+            if (!string.IsNullOrEmpty(name))
+            {
+                if (!desc.EndsWith("."))
+                {
+                    desc = name + ". " + csv.Note;
+                }
+            }
+        }
+
         if (includeComment)
         {
             if (!desc.EndsWith("."))
             {
-                desc += "." + (csv.Comment ?? string.Empty);
+                desc += ".";
             }
+            desc += (" " + csv.Comment ?? string.Empty);
         }
+
         var pointResult = Point.ParseFromUrl(csv.URL);
         if (pointResult.HasError)
         {

@@ -4,6 +4,7 @@ using System.Xml.Serialization;
 using CsvHelper;
 using CsvHelper.Configuration;
 using GoogleMapExport2KML.Models;
+using static GoogleMapExport2KML.Commands.ParseCommand;
 
 
 namespace GoogleMapExport2KML.Services;
@@ -64,7 +65,11 @@ public class CsvParser
         using (var csv = new CsvReader(reader, config))
         {
             csv.Context.RegisterClassMap<CsvLineItemMap>();
-            response.Results = csv.GetRecordsAsync<CsvLineItem>();
+            var lines = csv.GetRecordsAsync<CsvLineItem>();
+            await foreach (var line in lines)
+            {
+               response.Results.Add(line);
+            }
         }
         response.Errors = errors;
 

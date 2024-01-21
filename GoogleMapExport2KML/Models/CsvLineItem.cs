@@ -9,6 +9,7 @@ public class CsvLineItem
     public string Note { get; set; }
     public string URL { get; set; }
     public string Comment { get; set; }
+    public int RowNumber { get; set; }
 }
 
 public class CsvLineItemError
@@ -22,8 +23,8 @@ public class CsvLineItemError
 public class CsvLineItemResponse
 {
 
-    public IAsyncEnumerable<CsvLineItem> Results { get; set; }
-    public IEnumerable<CsvLineItemError> Errors { get; set; }
+    public List<CsvLineItem> Results { get; set; } = new List<CsvLineItem>();
+    public List<CsvLineItemError> Errors { get; set; } = new List<CsvLineItemError>();
     public bool HasErrors => Errors?.Any() == true;
 }
 
@@ -35,6 +36,7 @@ public sealed class CsvLineItemMap : ClassMap<CsvLineItem>
         Map(m => m.Note);
         Map(m => m.URL);
         Map(m => m.Comment);
+        Map(m => m.RowNumber).Convert(row => row.Row.Parser.RawRow);
     }
 }
 
