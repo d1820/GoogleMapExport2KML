@@ -20,6 +20,7 @@ public class ParseCommand : Command<ParseCommand.Settings>
 
     public override int Execute(CommandContext context, Settings settings)
     {
+        var status = 0;
         AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
             .SpinnerStyle(Style.Parse("green bold"))
@@ -43,6 +44,7 @@ public class ParseCommand : Command<ParseCommand.Settings>
                 if (settings.StopOnError && csvErrors.Any())
                 {
                     DisplayErrorTable(csvErrors, "CSV Parsing Errors");
+                    status = -1;
                     return;
                 }
 
@@ -64,6 +66,7 @@ public class ParseCommand : Command<ParseCommand.Settings>
                 if (settings.StopOnError && csvErrors.Any())
                 {
                     DisplayErrorTable(csvErrors, "Placemark Parsing Errors");
+                    status = -1;
                     return;
                 }
 
@@ -80,6 +83,7 @@ public class ParseCommand : Command<ParseCommand.Settings>
                 _kmlService.CreateKML(kml, outFilePath);
                 AnsiConsole.MarkupLine($"[green bold] KML file successfully generated. Placements: {allItems.Count}.[/] [grey]Saved to {outFilePath}[/]");
             });
+        return status;
     }
 
     private static void DisplayErrorTable(List<CsvMappingResult<CsvLineItem>> csvErrors, string title)

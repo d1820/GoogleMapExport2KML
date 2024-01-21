@@ -3,6 +3,7 @@
 using GoogleMapExport2KML.Commands;
 using GoogleMapExport2KML.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 var registrations = new ServiceCollection();
@@ -14,6 +15,16 @@ registrations.AddSingleton<KMLService>();
 // A type registrar is an adapter for a DI framework.
 var registrar = new TypeRegistrar(registrations);
 
+AnsiConsole.Write(
+    new FigletText("GoogleMapExport2KML")
+        .LeftJustified()
+        .Color(Color.Blue));
+
+Console.WriteLine();
+var panel = new Panel("Take that Google for not making this easy");
+panel.Border = BoxBorder.Double;
+panel.Padding = new Padding(2, 2, 2, 2);
+panel.Expand = false;
 
 var app = new CommandApp(registrar);
 app.Configure(config =>

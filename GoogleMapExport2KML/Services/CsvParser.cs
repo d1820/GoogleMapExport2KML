@@ -24,7 +24,6 @@ public class CsvParser
     {
         return _csvParser.ReadFromFile(filename, System.Text.Encoding.ASCII).ToList().AsReadOnly();
     }
-
 }
 public class KMLService
 {
