@@ -1,8 +1,11 @@
 using System.ComponentModel;
 using GoogleMapExport2KML.Models;
 using GoogleMapExport2KML.Services;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using System;
 
 namespace GoogleMapExport2KML.Commands;
 
@@ -83,14 +86,36 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
                 }
 
                 // Update the status and spinner
-                ctx.Status("Building KML output");
+                ctx.Status("Parsing Geolocations");
                 ctx.Spinner(Spinner.Known.Circle);
                 ctx.SpinnerStyle(Style.Parse("blue"));
                 ctx.Refresh();
                 var kml = new Kml();
 
-                foreach (var line in results.Where(w => !w.HasErrors).SelectMany(s => s.Results))
+                //process all the ones that already have lat and long
+                foreach (var line in results.Where(w => !w.HasErrors)
+                                                .SelectMany(s => s.Results)
+                                                .Where(w => w.URL.Contains("/search/")))
                 {
+                    // Set ChromeOptions to run the browser in headless mode
+                    //ChromeOptions options = new ChromeOptions();
+                    //options.AddArgument("--headless");
+
+                    //using (IWebDriver driver = new ChromeDriver( options))
+                    //{
+                    //    // Navigate to the desired URL
+                    //    driver.Navigate().GoToUrl(line.URL);
+
+                    //    // Wait for 3 seconds
+                    //    await Task.Delay(3000);
+
+                    //    // Read the HTML content
+                    //    string htmlContent = driver.PageSource;
+
+                    //    // Use the HTML content as needed
+                    //    Console.WriteLine(driver.Url);
+                    //}
+
                     var pm = Map(line, settings.IncludeCommentInDescription);
                     if (pm.HasError)
                     {
@@ -102,7 +127,67 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
                         continue;
                     }
                     kml.Placemarks.Add(pm.Placemark!);
+                }
 
+                if (settings.StopOnError && csvErrors.Any())
+                {
+                    DisplayErrorTable(csvErrors, "Placemark Parsing Errors");
+                    status = -1;
+                    return;
+                }
+
+                ctx.Status("Parsing Google data locations");
+                ctx.Spinner(Spinner.Known.Circle);
+                ctx.SpinnerStyle(Style.Parse("blue"));
+                ctx.Refresh();
+                //Set ChromeOptions to run the browser in headless mode
+                ChromeOptions options = new ChromeOptions();
+                options.AddArgument("--headless");
+                options.AddArgument("--no-sandbox");
+                options.AddArgument("--headless");
+                options.AddArgument("--disable-gpu");
+                options.AddArgument("--disable-crash-reporter");
+                options.AddArgument("--disable-extensions");
+                options.AddArgument("--disable-in-process-stack-traces");
+                options.AddArgument("--disable-logging");
+                options.AddArgument("--disable-dev-shm-usage");
+                options.AddArgument("--log-level=3");
+                options.AddArgument("--output=/dev/null");
+                options.SetLoggingPreference(LogType.Driver, LogLevel.Off);
+                options.SetLoggingPreference(LogType.Browser, LogLevel.Off);
+                options.SetLoggingPreference(LogType.Client, LogLevel.Off);
+                options.AddAdditionalOption
+
+                using (IWebDriver driver = new ChromeDriver(options))
+                {
+                    foreach (var line in results.Where(w => !w.HasErrors)
+                                                .SelectMany(s => s.Results)
+                                                .Where(w => w.URL.Contains("/place/")))
+                    {
+
+                        // Navigate to the desired URL
+                        driver.Navigate().GoToUrl(line.URL);
+
+                        // Wait for 3 seconds
+                        await Task.Delay(3000);
+
+                        // Use the HTML content as needed
+                        Console.WriteLine("Found: " + driver.Url);
+
+                        line.URL = driver.Url;
+
+                        var pm = Map(line, settings.IncludeCommentInDescription);
+                        if (pm.HasError)
+                        {
+                            csvErrors.Add(new CsvLineItemError
+                            {
+                                RowIndex = line.RowNumber,
+                                Error = pm.ErrorMessage
+                            });
+                            continue;
+                        }
+                        kml.Placemarks.Add(pm.Placemark!);
+                    }
                 }
 
                 if (settings.StopOnError && csvErrors.Any())
@@ -154,13 +239,10 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
         var desc = csv.Note;
         if (csv.URL.Contains("/place/"))
         {
-            var name = csv.URL.Split("/").TakeLast(2).First().Replace("+", " ");
+            var name = csv.URL.Replace("https://www.google.com/maps/place/", "").Split("/").First().Replace("+", " ");
             if (!string.IsNullOrEmpty(name))
             {
-                if (!desc.EndsWith("."))
-                {
-                    desc = name + ". " + csv.Note;
-                }
+                desc = name + ". " + csv.Note;
             }
         }
 
@@ -172,6 +254,7 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
             }
             desc += (" " + csv.Comment ?? string.Empty);
         }
+
 
         var pointResult = Point.ParseFromUrl(csv.URL);
         if (pointResult.HasError)
@@ -189,5 +272,4 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
             Placemark = pm
         };
     }
-
 }

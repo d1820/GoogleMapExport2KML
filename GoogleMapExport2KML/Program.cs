@@ -40,6 +40,6 @@ app.Configure(config =>
     config.ValidateExamples();
 #endif
 });
-args = ["parse", @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Camping.csv", "-o=Output/test.kml"];
+args = ["parse", @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Test.csv", "-o=Output/test.kml"];
 
 await app.RunAsync(args);

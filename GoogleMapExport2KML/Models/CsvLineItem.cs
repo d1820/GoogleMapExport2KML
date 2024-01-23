@@ -95,7 +95,7 @@ public class Point
 
         //https://www.google.com/maps/search/33.895005,-112.333546
         //OR
-        //https://www.google.com/maps/place/Hawley+Lake+Campground+Area/data=!4m2!3m1!1s0x8728a32cc0f42b29:0x9401773f7a022a97
+        //https://www.google.com/maps/place/North+Fork+Campground/@38.6117469,-106.3202388,17z/data=!3m1!4b1!4m6!3m5!1s0x871544e7cd62c109:0x1b22906b6daddb80!8m2!3d38.6117469!4d-106.3202388!16s%2Fg%2F1tg8k5fc?entry=ttu
         if (url.Contains("https://www.google.com/maps/search/"))
         {
             var coords = url.Replace("https://www.google.com/maps/search/", "");
@@ -105,11 +105,12 @@ public class Point
 
         if (url.Contains("https://www.google.com/maps/place/"))
         {
-            //0x8728a32cc0f42b29:0x9401773f7a022a97
-            var data = url.Split("!1s").Last();
-            var coords = data.Split(":");
-            var latitude = coords[0].GetLatitude();
-            var longitude = coords[1].GetLongitude();
+            //coords: @38.6117469,-106.3202388,17z
+            var coords = url.Replace("https://www.google.com/maps/place/", "").Split("/").Take(2).Last();
+            var parts = coords.Replace("@", "").Split(",").Take(2).ToList();
+            var latitude = parts[0];
+            var longitude = parts[1];
+
             return new ParsePointResult { Point = new Point($"{latitude},{longitude}") };
         }
         return new ParsePointResult { ErrorMessage = $"Url does not match any existing parser. Skipping Point Parsing. Url: {url}" };
