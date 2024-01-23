@@ -156,9 +156,13 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
                 options.SetLoggingPreference(LogType.Driver, LogLevel.Off);
                 options.SetLoggingPreference(LogType.Browser, LogLevel.Off);
                 options.SetLoggingPreference(LogType.Client, LogLevel.Off);
-                options.AddAdditionalOption
-
-                using (IWebDriver driver = new ChromeDriver(options))
+                options.SetLoggingPreference(LogType.Profiler, LogLevel.Off);
+                options.SetLoggingPreference(LogType.Server, LogLevel.Off);
+                var svc = ChromeDriverService.CreateDefaultService();
+                svc.SuppressInitialDiagnosticInformation = true;
+                svc.HideCommandPromptWindow = true;
+                svc.DisableBuildCheck = true;
+                using (ChromeDriver driver = new ChromeDriver(svc, options))
                 {
                     foreach (var line in results.Where(w => !w.HasErrors)
                                                 .SelectMany(s => s.Results)
