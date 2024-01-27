@@ -1,9 +1,9 @@
 using GoogleMapExport2KML.Models;
 
 namespace GoogleMapExport2KML.Mappings;
+
 public class Mapper
 {
-
     public PlacemarkResult MapToPlacement(CsvLineItem csv, bool includeComment)
     {
         var desc = csv.Note;

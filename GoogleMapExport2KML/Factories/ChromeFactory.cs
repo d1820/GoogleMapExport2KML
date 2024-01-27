@@ -2,6 +2,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
 namespace GoogleMapExport2KML.Factories;
+
 public class ChromeFactory
 {
     public ChromeDriver CreateDriver()

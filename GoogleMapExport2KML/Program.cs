@@ -26,7 +26,6 @@ AnsiConsole.Write(
         .LeftJustified()
         .Color(Color.Blue));
 
-
 Console.WriteLine("");
 Console.WriteLine("");
 AnsiConsole.Markup("Take this [bold blue]G[/][bold red]O[/][bold yellow]O[/][bold blue]G[/][bold green]L[/][bold red]E[/] for not making this easy ");

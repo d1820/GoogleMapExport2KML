@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using GoogleMapExport2KML.Factories;
 using GoogleMapExport2KML.Mappings;
 using GoogleMapExport2KML.Models;
@@ -12,16 +7,18 @@ using Spectre.Console;
 using static GoogleMapExport2KML.Commands.ParseCommand;
 
 namespace GoogleMapExport2KML.Processors;
+
 public class DatalocationProcessor
 {
-    private readonly Mapper _mapper;
     private readonly ChromeFactory _chromeFactory;
+    private readonly Mapper _mapper;
 
     public DatalocationProcessor(Mapper mapper, ChromeFactory chromeFactory)
     {
         _mapper = mapper;
         _chromeFactory = chromeFactory;
     }
+
     public async Task<ProcessorResponse> ProcessAsync(List<CsvLineItem> dataPlaces, ParseSettings settings, StatusContext ctx)
     {
         var response = new ProcessorResponse();

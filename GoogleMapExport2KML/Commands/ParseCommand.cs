@@ -1,11 +1,8 @@
 using System.ComponentModel;
-using GoogleMapExport2KML.Factories;
-using GoogleMapExport2KML.Mappings;
 using GoogleMapExport2KML.Models;
 using GoogleMapExport2KML.Processors;
 using GoogleMapExport2KML.Services;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -14,9 +11,9 @@ namespace GoogleMapExport2KML.Commands;
 public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
 {
     private readonly CsvProcessor _csvProcessor;
-    private readonly KMLService _kmlService;
-    private readonly GeolocationProcessor _geolocationProcessor;
     private readonly DatalocationProcessor _datalocationProcessor;
+    private readonly GeolocationProcessor _geolocationProcessor;
+    private readonly KMLService _kmlService;
 
     public ParseCommand(CsvProcessor csvProcessor, KMLService kmlService,
         GeolocationProcessor geolocationProcessor,
@@ -73,7 +70,6 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
                     return;
                 }
                 kml.Placemarks.AddRange(dataResponse.Placemarks);
-
 
                 ctx.Status("Generating KML output");
                 ctx.Spinner(Spinner.Known.Circle);
@@ -140,13 +136,13 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         [Description("If true. Adds any comment from the csv column to the description")]
         public bool IncludeCommentInDescription { get; set; } = false;
 
-        [CommandOption("-o|--output")]
-        [Description("The name of the output KML file")]
-        public string OutputFileName { get; set; }
-
         [CommandOption("-l|--loglevel")]
         [Description("The log level of the output. Default: Info")]
         public LogLevel LogLevel { get; set; } = LogLevel.Info;
+
+        [CommandOption("-o|--output")]
+        [Description("The name of the output KML file")]
+        public string OutputFileName { get; set; }
 
         [CommandOption("-t|--timeout")]
         [Description("The timeout to wait on each lookup for coordinates from Google. Default 10s")]
