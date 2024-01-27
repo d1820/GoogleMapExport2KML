@@ -1,61 +1,34 @@
 using System.ComponentModel;
+using GoogleMapExport2KML.Factories;
+using GoogleMapExport2KML.Mappings;
 using GoogleMapExport2KML.Models;
+using GoogleMapExport2KML.Processors;
 using GoogleMapExport2KML.Services;
-using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System;
 
 namespace GoogleMapExport2KML.Commands;
 
-public class ParseCommand : AsyncCommand<ParseCommand.Settings>
+public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
 {
-    private readonly CsvParser _csvParser;
+    private readonly CsvProcessor _csvProcessor;
     private readonly KMLService _kmlService;
+    private readonly GeolocationProcessor _geolocationProcessor;
+    private readonly DatalocationProcessor _datalocationProcessor;
 
-    public ParseCommand(CsvParser csvParser, KMLService kmlService)
+    public ParseCommand(CsvProcessor csvProcessor, KMLService kmlService,
+        GeolocationProcessor geolocationProcessor,
+        DatalocationProcessor datalocationProcessor)
     {
-        _csvParser = csvParser;
+        _csvProcessor = csvProcessor;
         _kmlService = kmlService;
+        _geolocationProcessor = geolocationProcessor;
+        _datalocationProcessor = datalocationProcessor;
     }
 
-    public class Settings : CommandSettings
-    {
-        [CommandOption("-f|--file <VALUES>")]
-        [Description("The csv files to parse")]
-        public string[] Files { get; set; }
-
-        [CommandOption("-o|--output")]
-        [Description("The name of the output KML file")]
-        public string OutputFileName { get; set; }
-
-        [CommandOption("--includeComments")]
-        [Description("If true. Adds any comment from the csv column to the description")]
-        public bool IncludeCommentInDescription { get; set; } = false;
-
-        [CommandOption("--stopOnError")]
-        [Description("If true. Stops parsing on any csv row error.")]
-        public bool StopOnError { get; set; } = false;
-
-        public override ValidationResult Validate()
-        {
-            var filesValid = Files?.All(File.Exists);
-            var nameValid = !string.IsNullOrEmpty(OutputFileName);
-            if (filesValid != true)
-            {
-                return ValidationResult.Error("One or more files can not be found");
-            }
-            if (!nameValid)
-            {
-                return ValidationResult.Error("output file is required");
-            }
-
-            return ValidationResult.Success();
-        }
-    }
-
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, ParseSettings settings)
     {
         var status = 0;
         await AnsiConsole.Status()
@@ -64,20 +37,8 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
             .StartAsync("Parsing CSV files", async ctx =>
             {
                 ctx.Refresh();
-                var allItems = new List<CsvLineItemResponse>();
-                var tasks = new List<Task<CsvLineItemResponse>>();
-                foreach (var file in settings.Files)
-                {
-                    var fi = new FileInfo(file);
-                    AnsiConsole.MarkupLine($"Parsing file {fi.Name}");
-                    ctx.Refresh();
-                    tasks.Add(_csvParser.ParseAsync(file));
-                }
-
-                var results = await Task.WhenAll(tasks);
-
+                var results = await _csvProcessor.ProcessAsync(settings.Files, ctx);
                 var csvErrors = results.Where(w => w.HasErrors).SelectMany(s => s.Errors).ToList();
-
                 if (settings.StopOnError && csvErrors.Any())
                 {
                     DisplayErrorTable(csvErrors, "CSV Parsing Errors");
@@ -85,121 +46,34 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
                     return;
                 }
 
-                // Update the status and spinner
-                ctx.Status("Parsing Geolocations");
-                ctx.Spinner(Spinner.Known.Circle);
-                ctx.SpinnerStyle(Style.Parse("blue"));
-                ctx.Refresh();
                 var kml = new Kml();
-
-                //process all the ones that already have lat and long
-                foreach (var line in results.Where(w => !w.HasErrors)
+                var geoLocations = results.Where(w => !w.HasErrors)
                                                 .SelectMany(s => s.Results)
-                                                .Where(w => w.URL.Contains("/search/")))
+                                                .Where(w => w.URL.Contains("/search/")).ToList();
+
+                var geoResponse = await _geolocationProcessor.ProcessAsync(geoLocations, settings, ctx);
+
+                if (settings.StopOnError && !geoResponse.IsSuccess)
                 {
-                    // Set ChromeOptions to run the browser in headless mode
-                    //ChromeOptions options = new ChromeOptions();
-                    //options.AddArgument("--headless");
-
-                    //using (IWebDriver driver = new ChromeDriver( options))
-                    //{
-                    //    // Navigate to the desired URL
-                    //    driver.Navigate().GoToUrl(line.URL);
-
-                    //    // Wait for 3 seconds
-                    //    await Task.Delay(3000);
-
-                    //    // Read the HTML content
-                    //    string htmlContent = driver.PageSource;
-
-                    //    // Use the HTML content as needed
-                    //    Console.WriteLine(driver.Url);
-                    //}
-
-                    var pm = Map(line, settings.IncludeCommentInDescription);
-                    if (pm.HasError)
-                    {
-                        csvErrors.Add(new CsvLineItemError
-                        {
-                            RowIndex = line.RowNumber,
-                            Error = pm.ErrorMessage
-                        });
-                        continue;
-                    }
-                    kml.Placemarks.Add(pm.Placemark!);
-                }
-
-                if (settings.StopOnError && csvErrors.Any())
-                {
-                    DisplayErrorTable(csvErrors, "Placemark Parsing Errors");
+                    DisplayErrorTable(geoResponse.Errors, "Placemark Parsing Errors");
                     status = -1;
                     return;
                 }
+                kml.Placemarks.AddRange(geoResponse.Placemarks);
 
-                ctx.Status("Parsing Google data locations");
-                ctx.Spinner(Spinner.Known.Circle);
-                ctx.SpinnerStyle(Style.Parse("blue"));
-                ctx.Refresh();
-                //Set ChromeOptions to run the browser in headless mode
-                ChromeOptions options = new ChromeOptions();
-                options.AddArgument("--headless");
-                options.AddArgument("--no-sandbox");
-                options.AddArgument("--headless");
-                options.AddArgument("--disable-gpu");
-                options.AddArgument("--disable-crash-reporter");
-                options.AddArgument("--disable-extensions");
-                options.AddArgument("--disable-in-process-stack-traces");
-                options.AddArgument("--disable-logging");
-                options.AddArgument("--disable-dev-shm-usage");
-                options.AddArgument("--log-level=3");
-                options.AddArgument("--output=/dev/null");
-                options.SetLoggingPreference(LogType.Driver, LogLevel.Off);
-                options.SetLoggingPreference(LogType.Browser, LogLevel.Off);
-                options.SetLoggingPreference(LogType.Client, LogLevel.Off);
-                options.SetLoggingPreference(LogType.Profiler, LogLevel.Off);
-                options.SetLoggingPreference(LogType.Server, LogLevel.Off);
-                var svc = ChromeDriverService.CreateDefaultService();
-                svc.SuppressInitialDiagnosticInformation = true;
-                svc.HideCommandPromptWindow = true;
-                svc.DisableBuildCheck = true;
-                using (ChromeDriver driver = new ChromeDriver(svc, options))
+                var dataPlaces = results.Where(w => !w.HasErrors)
+                                               .SelectMany(s => s.Results)
+                                               .Where(w => w.URL.Contains("/place/")).ToList();
+
+                var dataResponse = await _datalocationProcessor.ProcessAsync(dataPlaces, settings, ctx);
+                if (settings.StopOnError && !dataResponse.IsSuccess)
                 {
-                    foreach (var line in results.Where(w => !w.HasErrors)
-                                                .SelectMany(s => s.Results)
-                                                .Where(w => w.URL.Contains("/place/")))
-                    {
-
-                        // Navigate to the desired URL
-                        driver.Navigate().GoToUrl(line.URL);
-
-                        // Wait for 3 seconds
-                        await Task.Delay(3000);
-
-                        // Use the HTML content as needed
-                        Console.WriteLine("Found: " + driver.Url);
-
-                        line.URL = driver.Url;
-
-                        var pm = Map(line, settings.IncludeCommentInDescription);
-                        if (pm.HasError)
-                        {
-                            csvErrors.Add(new CsvLineItemError
-                            {
-                                RowIndex = line.RowNumber,
-                                Error = pm.ErrorMessage
-                            });
-                            continue;
-                        }
-                        kml.Placemarks.Add(pm.Placemark!);
-                    }
-                }
-
-                if (settings.StopOnError && csvErrors.Any())
-                {
-                    DisplayErrorTable(csvErrors, "Placemark Parsing Errors");
+                    DisplayErrorTable(dataResponse.Errors, "Placemark Parsing Errors");
                     status = -1;
                     return;
                 }
+                kml.Placemarks.AddRange(dataResponse.Placemarks);
+
 
                 ctx.Status("Generating KML output");
                 ctx.Spinner(Spinner.Known.Circle);
@@ -211,9 +85,14 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
                     string currentDirectory = Directory.GetCurrentDirectory();
                     outFilePath = Path.Combine(currentDirectory, settings.OutputFileName);
                 }
-
+                EnsureParentDirectories(outFilePath);
                 _kmlService.CreateKML(kml, outFilePath);
-                AnsiConsole.MarkupLine($"[green bold] KML file successfully generated. Placements: {allItems.Count}.[/] [grey]Saved to {outFilePath}[/]");
+                var path = new TextPath(outFilePath).RootColor(Color.Grey)
+                                .SeparatorColor(Color.Grey)
+                                .StemColor(Color.Blue)
+                                .LeafColor(Color.Grey);
+                AnsiConsole.MarkupLine($"[green bold] KML file successfully generated. Placements: {kml.Placemarks.Count}.[/]");
+                AnsiConsole.Write(path);
             });
         return status;
     }
@@ -238,42 +117,59 @@ public class ParseCommand : AsyncCommand<ParseCommand.Settings>
         AnsiConsole.Write(table);
     }
 
-    public PlacemarkResult Map(CsvLineItem csv, bool includeComment)
+    private static void EnsureParentDirectories(string filePath)
     {
-        var desc = csv.Note;
-        if (csv.URL.Contains("/place/"))
+        // Get the directory path without the file name
+        string directoryPath = Path.GetDirectoryName(filePath);
+
+        // Create all necessary parent directories
+        if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
         {
-            var name = csv.URL.Replace("https://www.google.com/maps/place/", "").Split("/").First().Replace("+", " ");
-            if (!string.IsNullOrEmpty(name))
+            Directory.CreateDirectory(directoryPath);
+            Console.WriteLine($"Parent directories created: {directoryPath}");
+        }
+    }
+
+    public class ParseSettings : CommandSettings
+    {
+        [CommandOption("-f|--file <VALUES>")]
+        [Description("The csv files to parse")]
+        public string[] Files { get; set; }
+
+        [CommandOption("--includeComments")]
+        [Description("If true. Adds any comment from the csv column to the description")]
+        public bool IncludeCommentInDescription { get; set; } = false;
+
+        [CommandOption("-o|--output")]
+        [Description("The name of the output KML file")]
+        public string OutputFileName { get; set; }
+
+        [CommandOption("-l|--loglevel")]
+        [Description("The log level of the output. Default: Info")]
+        public LogLevel LogLevel { get; set; } = LogLevel.Info;
+
+        [CommandOption("-t|--timeout")]
+        [Description("The timeout to wait on each lookup for coordinates from Google. Default 10s")]
+        public double QueryPlacesTimeoutSeconds { get; set; } = 10;
+
+        [CommandOption("--stopOnError")]
+        [Description("If true. Stops parsing on any csv row error.")]
+        public bool StopOnError { get; set; } = false;
+
+        public override ValidationResult Validate()
+        {
+            var filesValid = Files?.All(File.Exists);
+            var nameValid = !string.IsNullOrEmpty(OutputFileName);
+            if (filesValid != true)
             {
-                desc = name + ". " + csv.Note;
+                return ValidationResult.Error("One or more files can not be found");
             }
-        }
-
-        if (includeComment)
-        {
-            if (!desc.EndsWith("."))
+            if (!nameValid)
             {
-                desc += ".";
+                return ValidationResult.Error("output file is required");
             }
-            desc += (" " + csv.Comment ?? string.Empty);
-        }
 
-
-        var pointResult = Point.ParseFromUrl(csv.URL);
-        if (pointResult.HasError)
-        {
-            return new PlacemarkResult { ErrorMessage = pointResult.ErrorMessage };
+            return ValidationResult.Success();
         }
-        var pm = new Placemark
-        {
-            Name = csv.Title,
-            Description = desc,
-            Point = pointResult.Point!
-        };
-        return new PlacemarkResult
-        {
-            Placemark = pm
-        };
     }
 }

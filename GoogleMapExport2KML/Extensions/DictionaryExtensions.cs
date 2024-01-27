@@ -1,6 +1,5 @@
-using System.Globalization;
-
 namespace GoogleMapExport2KML.Extensions;
+
 internal static class DictionaryExtensions
 {
     internal static bool TryGetValue<T>(this Dictionary<string, object> dictionary, string key, out T? convertedValue)
@@ -12,7 +11,7 @@ internal static class DictionaryExtensions
         }
         if (dictionary.TryGetValue(key, out var value))
         {
-            if(value == null)
+            if (value == null)
             {
                 return false;
             }

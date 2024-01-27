@@ -1,7 +1,7 @@
 // See https://aka.ms/new-console-template for more information
 
-using Spectre.Console.Cli;
 using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console.Cli;
 
 public sealed class TypeRegistrar : ITypeRegistrar
 {
