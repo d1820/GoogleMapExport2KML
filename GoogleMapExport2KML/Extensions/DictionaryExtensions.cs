@@ -1,3 +1,6 @@
+using GoogleMapExport2KML.Models;
+using Spectre.Console;
+
 namespace GoogleMapExport2KML.Extensions;
 
 internal static class DictionaryExtensions

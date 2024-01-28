@@ -1,4 +1,7 @@
+using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using GoogleMapExport2KML.Extensions;
 using GoogleMapExport2KML.Models;
 using GoogleMapExport2KML.Processors;
 using GoogleMapExport2KML.Services;
@@ -11,13 +14,13 @@ namespace GoogleMapExport2KML.Commands;
 public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
 {
     private readonly CsvProcessor _csvProcessor;
-    private readonly DatalocationProcessor _datalocationProcessor;
+    private readonly DataLocationProcessor _datalocationProcessor;
     private readonly GeolocationProcessor _geolocationProcessor;
     private readonly KMLService _kmlService;
 
     public ParseCommand(CsvProcessor csvProcessor, KMLService kmlService,
         GeolocationProcessor geolocationProcessor,
-        DatalocationProcessor datalocationProcessor)
+        DataLocationProcessor datalocationProcessor)
     {
         _csvProcessor = csvProcessor;
         _kmlService = kmlService;
@@ -27,70 +30,85 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, ParseSettings settings)
     {
-        var status = 0;
-        await AnsiConsole.Status()
-            .Spinner(Spinner.Known.Star)
-            .SpinnerStyle(Style.Parse("green bold"))
-            .StartAsync("Parsing CSV files", async ctx =>
-            {
-                ctx.Refresh();
-                var results = await _csvProcessor.ProcessAsync(settings.Files, ctx);
-                var csvErrors = results.Where(w => w.HasErrors).SelectMany(s => s.Errors).ToList();
-                if (settings.StopOnError && csvErrors.Any())
-                {
-                    DisplayErrorTable(csvErrors, "CSV Parsing Errors");
-                    status = -1;
-                    return;
-                }
+        var sw = new Stopwatch();
+        sw.Start();
+        var results = await _csvProcessor.ProcessAsync(settings.Files, settings);
+        var csvErrors = results.Where(w => w.HasErrors).SelectMany(s => s.Errors).ToList();
+        if (settings.StopOnError && csvErrors.Any())
+        {
+            DisplayErrorTable(csvErrors, "CSV Parsing Errors");
+            return -1;
+        }
 
-                var kml = new Kml();
-                var geoLocations = results.Where(w => !w.HasErrors)
-                                                .SelectMany(s => s.Results)
-                                                .Where(w => w.URL.Contains("/search/")).ToList();
+        if (settings.LogLevel == LogLevel.Debug)
+        {
+            AnsiConsole.MarkupLine($"[yellow bold]---------------------------------[/]");
+        }
+        AnsiConsole.MarkupLine($"[yellow bold]Processed {results.Length} files.[/]");
+        if (settings.LogLevel == LogLevel.Debug)
+        {
+            Console.WriteLine("");
+        }
+        var kml = new Kml();
+        var geoLocations = results.Where(w => !w.HasErrors)
+                                        .SelectMany(s => s.Results)
+                                        .Where(w => w.URL.Contains("/search/")).ToList();
 
-                var geoResponse = await _geolocationProcessor.ProcessAsync(geoLocations, settings, ctx);
+        var geoResponse = await _geolocationProcessor.ProcessAsync(geoLocations, settings);
 
-                if (settings.StopOnError && !geoResponse.IsSuccess)
-                {
-                    DisplayErrorTable(geoResponse.Errors, "Placemark Parsing Errors");
-                    status = -1;
-                    return;
-                }
-                kml.Placemarks.AddRange(geoResponse.Placemarks);
+        if (settings.StopOnError && !geoResponse.IsSuccess)
+        {
+            DisplayErrorTable(geoResponse.Errors, "Placemark Parsing Errors");
+            return -1;
+        }
+        if (settings.LogLevel == LogLevel.Debug)
+        {
+            AnsiConsole.MarkupLine($"[yellow bold]------------------------------------------------------[/]");
+        }
+        AnsiConsole.MarkupLine($"[yellow bold]Processed {geoResponse.Placemarks.Count} geolocations.[/]");
+        if (settings.LogLevel == LogLevel.Debug)
+        {
+            Console.WriteLine("");
+        }
+        kml.Placemarks.AddRange(geoResponse.Placemarks);
 
-                var dataPlaces = results.Where(w => !w.HasErrors)
-                                               .SelectMany(s => s.Results)
-                                               .Where(w => w.URL.Contains("/place/")).ToList();
+        var dataPlaces = results.Where(w => !w.HasErrors)
+                                       .SelectMany(s => s.Results)
+                                       .Where(w => w.URL.Contains("/place/")).ToList();
 
-                var dataResponse = await _datalocationProcessor.ProcessAsync(dataPlaces, settings, ctx);
-                if (settings.StopOnError && !dataResponse.IsSuccess)
-                {
-                    DisplayErrorTable(dataResponse.Errors, "Placemark Parsing Errors");
-                    status = -1;
-                    return;
-                }
-                kml.Placemarks.AddRange(dataResponse.Placemarks);
+        var dataResponse = await _datalocationProcessor.ProcessAsync(dataPlaces, settings);
+        if (settings.StopOnError && !dataResponse.IsSuccess)
+        {
+            DisplayErrorTable(dataResponse.Errors, "Placemark Parsing Errors");
+            return -1;
+        }
+        if (settings.LogLevel == LogLevel.Debug)
+        {
+            AnsiConsole.MarkupLine($"[yellow bold]------------------------------------------------[/]");
+        }
+        AnsiConsole.MarkupLine($"[yellow bold]Processed {dataResponse.Placemarks.Count} places.[/]");
+        if (settings.LogLevel == LogLevel.Debug)
+        {
+            Console.WriteLine("");
+        }
+        kml.Placemarks.AddRange(dataResponse.Placemarks);
 
-                ctx.Status("Generating KML output");
-                ctx.Spinner(Spinner.Known.Circle);
-                ctx.SpinnerStyle(Style.Parse("blue"));
-                ctx.Refresh();
-                var outFilePath = settings.OutputFileName;
-                if (!File.Exists(settings.OutputFileName))
-                {
-                    string currentDirectory = Directory.GetCurrentDirectory();
-                    outFilePath = Path.Combine(currentDirectory, settings.OutputFileName);
-                }
-                EnsureParentDirectories(outFilePath);
-                _kmlService.CreateKML(kml, outFilePath);
-                var path = new TextPath(outFilePath).RootColor(Color.Grey)
-                                .SeparatorColor(Color.Grey)
-                                .StemColor(Color.Blue)
-                                .LeafColor(Color.Grey);
-                AnsiConsole.MarkupLine($"[green bold] KML file successfully generated. Placements: {kml.Placemarks.Count}.[/]");
-                AnsiConsole.Write(path);
-            });
-        return status;
+        var outFilePath = settings.OutputFileName;
+        if (!File.Exists(settings.OutputFileName))
+        {
+            var currentDirectory = Directory.GetCurrentDirectory();
+            outFilePath = Path.Combine(currentDirectory, settings.OutputFileName);
+        }
+        EnsureParentDirectories(outFilePath);
+        _kmlService.CreateKML(kml, outFilePath);
+
+        sw.Stop();
+        Console.WriteLine("");
+        AnsiConsole.MarkupLine($"[green bold]KML file successfully generated. Placements: {kml.Placemarks.Count}.[/]");
+        Console.WriteLine("");
+        AnsiConsole.MarkupLine($"Total Processing Time: {sw.ElapsedMilliseconds.MsToTime()}");
+        AnsiConsole.MarkupLine($"File written to [yellow]{outFilePath}[/]");
+        return 0;
     }
 
     private static void DisplayErrorTable(List<CsvLineItemError> csvErrors, string title)
@@ -99,6 +117,7 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         //output error rows in table
         var table = new Table();
         table.Border(TableBorder.Rounded);
+        table.LeftAligned();
         // Add some columns
         table.AddColumn("RowIndex").Centered();
         table.AddColumn("ColumnIndex").Centered();
@@ -107,7 +126,7 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
 
         foreach (var line in csvErrors)
         {
-            table.AddRow(line.RowIndex.ToString(), line.ColumnIndex.ToString(), line.Error, line.Row);
+            table.AddRow(line.RowIndex.ToString(), line.ColumnIndex.ToString(), line.Error ?? "Unknown", line.Row ?? "No Row Data");
         }
 
         AnsiConsole.Write(table);
@@ -126,7 +145,7 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         }
     }
 
-    public class ParseSettings : CommandSettings
+    public class ParseSettings : KmlBaseSettings
     {
         [CommandOption("-f|--file <VALUES>")]
         [Description("The csv files to parse")]
@@ -134,7 +153,7 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
 
         [CommandOption("--includeComments")]
         [Description("If true. Adds any comment from the csv column to the description")]
-        public bool IncludeCommentInDescription { get; set; } = false;
+        public bool IncludeCommentInDescription { get; set; }
 
         [CommandOption("-l|--loglevel")]
         [Description("The log level of the output. Default: Info")]

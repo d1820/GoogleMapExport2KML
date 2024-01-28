@@ -13,24 +13,13 @@ using Spectre.Console.Cli;
 var registrations = new ServiceCollection();
 registrations.AddSingleton<CsvProcessor>();
 registrations.AddSingleton<KMLService>();
-registrations.AddSingleton<ChromeFactory>();
+registrations.AddSingleton<ChromeDriverPool>();
 registrations.AddSingleton<Mapper>();
 registrations.AddSingleton<GeolocationProcessor>();
-registrations.AddSingleton<DatalocationProcessor>();
+registrations.AddSingleton<DataLocationProcessor>();
 
 // Create a type registrar and register any dependencies. A type registrar is an adapter for a DI framework.
 var registrar = new TypeRegistrar(registrations);
-
-AnsiConsole.Write(
-    new FigletText("GoogleMapExport2KML")
-        .LeftJustified()
-        .Color(Color.Blue));
-
-Console.WriteLine("");
-Console.WriteLine("");
-AnsiConsole.Markup("Take this [bold blue]G[/][bold red]O[/][bold yellow]O[/][bold blue]G[/][bold green]L[/][bold red]E[/] for not making this easy ");
-Console.WriteLine("");
-Console.WriteLine("");
 
 var app = new CommandApp(registrar);
 app.Configure(config =>
@@ -48,9 +37,24 @@ if (Debugger.IsAttached)
     args = ["parse",
         @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Camping.csv",
         "--stopOnError",
+        //"--noheader",
         @"-o=Output\Camping.kml"];
-}
 
+    //args = ["parse", "--help"];
+}
+if (!args.Contains("--noheader"))
+{
+    AnsiConsole.Write(
+    new FigletText("GoogleMapExport2KML")
+        .LeftJustified()
+        .Color(Color.Blue));
+
+    Console.WriteLine("");
+    Console.WriteLine("");
+    AnsiConsole.Markup("Take this [bold blue]G[/][bold red]O[/][bold yellow]O[/][bold blue]G[/][bold green]L[/][bold red]E[/] for not making this easy ");
+    Console.WriteLine("");
+    Console.WriteLine("");
+}
 await app.RunAsync(args);
 
 if (Debugger.IsAttached)
