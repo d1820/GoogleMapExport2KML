@@ -27,6 +27,11 @@ public class DataLocationProcessor
         _chromeFactory = chromeFactory;
     }
 
+    public string EstimateRunTime(List<CsvLineItem> dataPlaces)
+    {
+        return $"Parsing {dataPlaces.Count} Google data locations. Est Time: {(dataPlaces.Count * (_delay * 2.5)).MsToTime()}";
+    }
+
     public async Task<ProcessorResponse> ProcessAsync(List<CsvLineItem> dataPlaces, ParseSettings settings)
     {
 

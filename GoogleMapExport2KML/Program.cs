@@ -35,10 +35,11 @@ app.Configure(config =>
 if (Debugger.IsAttached)
 {
     args = ["parse",
-        @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Camping.csv",
+        @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Done.csv",
         "--stopOnError",
         //"--noheader",
-        @"-o=Output\Camping.kml"];
+        "--dryrun",
+        @"-o=Output\Done.kml"];
 
     //args = ["parse", "--help"];
 }

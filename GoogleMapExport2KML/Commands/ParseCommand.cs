@@ -31,7 +31,10 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
     public override async Task<int> ExecuteAsync(CommandContext context, ParseSettings settings)
     {
         var sw = new Stopwatch();
-        sw.Start();
+        if (!settings.DryRun)
+        {
+            sw.Start();
+        }
         var results = await _csvProcessor.ProcessAsync(settings.Files, settings);
         var csvErrors = results.Where(w => w.HasErrors).SelectMany(s => s.Errors).ToList();
         if (settings.StopOnError && csvErrors.Any())
@@ -56,44 +59,58 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
                                         .SelectMany(s => s.Results)
                                         .Where(w => w.URL.Contains("/search/")).ToList();
 
-        var geoResponse = await _geolocationProcessor.ProcessAsync(geoLocations, settings);
+        if (settings.DryRun)
+        {
+            AnsiConsole.MarkupLine($"[darkorange3 bold]{_geolocationProcessor.EstimateRunTime(geoLocations)}[/]");
+        }
+        else
+        {
+            var geoResponse = await _geolocationProcessor.ProcessAsync(geoLocations, settings);
 
-        if (settings.StopOnError && !geoResponse.IsSuccess)
-        {
-            DisplayErrorTable(geoResponse.Errors, "Placemark Parsing Errors");
-            return -1;
+            if (settings.StopOnError && !geoResponse.IsSuccess)
+            {
+                DisplayErrorTable(geoResponse.Errors, "Placemark Parsing Errors");
+                return -1;
+            }
+            if (settings.LogLevel == LogLevel.Debug)
+            {
+                AnsiConsole.MarkupLine($"[yellow bold]------------------------------------------------------[/]");
+            }
+            AnsiConsole.MarkupLine($"[yellow bold]Processed {geoResponse.Placemarks.Count} geolocations.[/]");
+            if (settings.LogLevel == LogLevel.Debug)
+            {
+                Console.WriteLine("");
+            }
+            kml.Document.Placemarks.AddRange(geoResponse.Placemarks);
         }
-        if (settings.LogLevel == LogLevel.Debug)
-        {
-            AnsiConsole.MarkupLine($"[yellow bold]------------------------------------------------------[/]");
-        }
-        AnsiConsole.MarkupLine($"[yellow bold]Processed {geoResponse.Placemarks.Count} geolocations.[/]");
-        if (settings.LogLevel == LogLevel.Debug)
-        {
-            Console.WriteLine("");
-        }
-        kml.Document.Placemarks.AddRange(geoResponse.Placemarks);
 
         var dataPlaces = results.Where(w => !w.HasErrors)
                                        .SelectMany(s => s.Results)
                                        .Where(w => w.URL.Contains("/place/")).ToList();
 
-        var dataResponse = await _datalocationProcessor.ProcessAsync(dataPlaces, settings);
-        if (settings.StopOnError && !dataResponse.IsSuccess)
+        if (settings.DryRun)
         {
-            DisplayErrorTable(dataResponse.Errors, "Placemark Parsing Errors");
-            return -1;
+            AnsiConsole.MarkupLine($"[darkorange3 bold]{_datalocationProcessor.EstimateRunTime(dataPlaces)}[/]");
         }
-        if (settings.LogLevel == LogLevel.Debug)
+        else
         {
-            AnsiConsole.MarkupLine($"[yellow bold]------------------------------------------------[/]");
+            var dataResponse = await _datalocationProcessor.ProcessAsync(dataPlaces, settings);
+            if (settings.StopOnError && !dataResponse.IsSuccess)
+            {
+                DisplayErrorTable(dataResponse.Errors, "Placemark Parsing Errors");
+                return -1;
+            }
+            if (settings.LogLevel == LogLevel.Debug)
+            {
+                AnsiConsole.MarkupLine($"[yellow bold]------------------------------------------------[/]");
+            }
+            AnsiConsole.MarkupLine($"[yellow bold]Processed {dataResponse.Placemarks.Count} places.[/]");
+            if (settings.LogLevel == LogLevel.Debug)
+            {
+                Console.WriteLine("");
+            }
+            kml.Document.Placemarks.AddRange(dataResponse.Placemarks);
         }
-        AnsiConsole.MarkupLine($"[yellow bold]Processed {dataResponse.Placemarks.Count} places.[/]");
-        if (settings.LogLevel == LogLevel.Debug)
-        {
-            Console.WriteLine("");
-        }
-        kml.Document.Placemarks.AddRange(dataResponse.Placemarks);
 
         var outFilePath = settings.OutputFileName;
         if (!File.Exists(settings.OutputFileName))
@@ -101,15 +118,24 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
             var currentDirectory = Directory.GetCurrentDirectory();
             outFilePath = Path.Combine(currentDirectory, settings.OutputFileName);
         }
-        EnsureParentDirectories(outFilePath);
-        _kmlService.CreateKML(kml, outFilePath);
+        if (settings.DryRun)
+        {
+            AnsiConsole.MarkupLine($"File would be written to [yellow]{outFilePath}[/]");
+        }
+        else
+        {
+            EnsureParentDirectories(outFilePath);
+            _kmlService.CreateKML(kml, outFilePath);
 
-        sw.Stop();
-        Console.WriteLine("");
-        AnsiConsole.MarkupLine($"[green bold]KML file successfully generated. Placements: {kml.Document.Placemarks.Count}.[/]");
-        Console.WriteLine("");
-        AnsiConsole.MarkupLine($"Total Processing Time: {sw.ElapsedMilliseconds.MsToTime()}");
-        AnsiConsole.MarkupLine($"File written to [yellow]{outFilePath}[/]");
+            sw.Stop();
+            Console.WriteLine("");
+            AnsiConsole.MarkupLine($"[green bold]KML file successfully generated. Placements: {kml.Document.Placemarks.Count}.[/]");
+            Console.WriteLine("");
+            AnsiConsole.MarkupLine($"Total Processing Time: {sw.ElapsedMilliseconds.MsToTime()}");
+            AnsiConsole.MarkupLine($"File written to [yellow]{outFilePath}[/]");
+        }
+
+
         return 0;
     }
 
@@ -171,7 +197,11 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
 
         [CommandOption("--stopOnError")]
         [Description("If true. Stops parsing on any csv row error.")]
-        public bool StopOnError { get; set; } = false;
+        public bool StopOnError { get; set; }
+
+        [CommandOption("--dryrun")]
+        [Description("If true. Runs through the files and estimates times to completion.")]
+        public bool DryRun { get; set; }
 
         public override ValidationResult Validate()
         {

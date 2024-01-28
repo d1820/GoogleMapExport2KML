@@ -20,6 +20,11 @@ public class GeolocationProcessor
     {
         _mapper = mapper;
     }
+
+    public string EstimateRunTime(List<CsvLineItem> geoLocations)
+    {
+        return $"Parsing {geoLocations.Count} Google geolocations. Est Time: {(geoLocations.Count * _delay).MsToTime()}";
+    }
     public async Task<ProcessorResponse> ProcessAsync(List<CsvLineItem> geoLocations, ParseSettings settings)
     {
         var response = new ProcessorResponse();
