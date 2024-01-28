@@ -50,6 +50,8 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
             Console.WriteLine("");
         }
         var kml = new Kml();
+        var fi = new FileInfo(settings.OutputFileName);
+        kml.Document.Name = fi.Name.Replace(fi.Extension, "");
         var geoLocations = results.Where(w => !w.HasErrors)
                                         .SelectMany(s => s.Results)
                                         .Where(w => w.URL.Contains("/search/")).ToList();
@@ -70,7 +72,7 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         {
             Console.WriteLine("");
         }
-        kml.Placemarks.AddRange(geoResponse.Placemarks);
+        kml.Document.Placemarks.AddRange(geoResponse.Placemarks);
 
         var dataPlaces = results.Where(w => !w.HasErrors)
                                        .SelectMany(s => s.Results)
@@ -91,7 +93,7 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         {
             Console.WriteLine("");
         }
-        kml.Placemarks.AddRange(dataResponse.Placemarks);
+        kml.Document.Placemarks.AddRange(dataResponse.Placemarks);
 
         var outFilePath = settings.OutputFileName;
         if (!File.Exists(settings.OutputFileName))
@@ -104,7 +106,7 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
 
         sw.Stop();
         Console.WriteLine("");
-        AnsiConsole.MarkupLine($"[green bold]KML file successfully generated. Placements: {kml.Placemarks.Count}.[/]");
+        AnsiConsole.MarkupLine($"[green bold]KML file successfully generated. Placements: {kml.Document.Placemarks.Count}.[/]");
         Console.WriteLine("");
         AnsiConsole.MarkupLine($"Total Processing Time: {sw.ElapsedMilliseconds.MsToTime()}");
         AnsiConsole.MarkupLine($"File written to [yellow]{outFilePath}[/]");

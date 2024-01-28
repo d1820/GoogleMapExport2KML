@@ -2,13 +2,11 @@ using System.Xml.Serialization;
 
 namespace GoogleMapExport2KML.Models;
 
-public class Placemark
+public class Document
 {
-    [XmlElement(ElementName = "description")]
-    public string Description { get; set; }
+    [XmlElement("Placemark")]
+    public List<Placemark> Placemarks { get; set; } = new List<Placemark>();
 
     [XmlElement(ElementName = "name")]
     public string Name { get; set; }
-
-    public Point Point { get; set; }
 }
