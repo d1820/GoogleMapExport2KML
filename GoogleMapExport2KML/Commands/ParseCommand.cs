@@ -35,6 +35,13 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         {
             sw.Start();
         }
+        else
+        {
+            var panel = new Panel("               DRY RUN               ");
+            panel.Border = BoxBorder.Ascii;
+            panel.Padding = new Padding(0, 1, 0, 1);
+            AnsiConsole.Write(panel);
+        }
         var results = await _csvProcessor.ProcessAsync(settings.Files, settings);
         var csvErrors = results.Where(w => w.HasErrors).SelectMany(s => s.Errors).ToList();
         if (settings.StopOnError && csvErrors.Any())
@@ -194,6 +201,10 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         [CommandOption("-t|--timeout")]
         [Description("The timeout to wait on each lookup for coordinates from Google. Default 10s")]
         public double QueryPlacesTimeoutSeconds { get; set; } = 10;
+
+        [CommandOption("-p|--parallel")]
+        [Description("The number of threads used to process Google data locations. Default 4")]
+        public int MaxDegreeOfParallelism { get; set; } = 4;
 
         [CommandOption("--stopOnError")]
         [Description("If true. Stops parsing on any csv row error.")]

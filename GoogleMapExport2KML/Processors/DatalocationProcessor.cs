@@ -93,7 +93,7 @@ public class DataLocationProcessor
                },
                new ExecutionDataflowBlockOptions
                {
-                   MaxDegreeOfParallelism = 4
+                   MaxDegreeOfParallelism = settings.MaxDegreeOfParallelism
                });
 
                foreach (var item in dataPlaces)
