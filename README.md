@@ -8,7 +8,7 @@ Parses .csv files generated from a google maps export of Saved Places. This fill
 ## Usage
 
 ```powershell
-GoogleMapExport2KML.exe parse [OPTIONS]
+goog2kml parse [OPTIONS]
 ```
 
 #### Options
@@ -33,34 +33,34 @@ GoogleMapExport2KML.exe parse [OPTIONS]
 
 ```powershell
 # Typical command
-GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
+goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 -o=MyCombinedPlaces.kml --stats --stopOnError -p=10
 ```
 
 ```powershell
 # This will output an estimated time that it will take to complete the conversion
-GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
+goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 -o=MyCombinedPlaces.kml --dryrun
 ```
 
 ```powershell
 # Creates multiple output files with 500 placemarks per file. This is useful for mapping
 # applications that limit the amount of placemarks that can be imported at 1 time
-GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
+goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 -o=MyCombinedPlaces.kml -c=500
 ```
 
 ```powershell
 # Outputs all the lines and files being processed. Once all completed will output how much time
 # each section took to complete
-GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
+goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 -o=MyCombinedPlaces.kml --stats --verbose
 ```
 
 ```powershell
 # Processes all the Google places lookups in parallel of 10 at a time. Note the more parallelism
 # used the more load is placed on your computer
-GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
+goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 -o=MyCombinedPlaces.kml -p=10
 ```
 
