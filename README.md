@@ -2,34 +2,13 @@
 
 Parses .csv files generated from a google maps export of Saved Places. This fills the gpa of allowing you to import valid KML files from google maps into other mapping applications.
 
+
+![GoogleMapExport2Kml](./GifInstructions/GoogleMapExport2Kml.gif)
+
 ## Usage
 
-
+```powershell
 GoogleMapExport2KML.exe parse [OPTIONS]
-
-#### Example Commands
-
-```powershell
-GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
--o=MyCombinedPlaces.kml
-```
-
-```powershell
-# This will output an estimated time that it will take to complete the conversion
-GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
--o=MyCombinedPlaces.kml --dryrun
-```
-
-```powershell
-# Creates multiple output files with 500 placemarks per file. This is useful for mapping
-# applications that limit the amount of placemarks that can be imported at 1 time
-GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
--o=MyCombinedPlaces.kml -c=500
-```
-
-```powershell
-GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
--o=MyCombinedPlaces.kml
 ```
 
 #### Options
@@ -50,3 +29,113 @@ GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfav
 |               | --dryrun          | If true. Runs through the files and estimates times to completion                                              |
 | -c,           | --chunks          | The number of placements to add per KML file. Files will be named based on number of files needed. Default ALL |
 
+#### Example Commands
+
+```powershell
+# Typical command
+GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
+-o=MyCombinedPlaces.kml --stats --stopOnError -p=10
+```
+
+```powershell
+# This will output an estimated time that it will take to complete the conversion
+GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
+-o=MyCombinedPlaces.kml --dryrun
+```
+
+```powershell
+# Creates multiple output files with 500 placemarks per file. This is useful for mapping
+# applications that limit the amount of placemarks that can be imported at 1 time
+GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
+-o=MyCombinedPlaces.kml -c=500
+```
+
+```powershell
+# Outputs all the lines and files being processed. Once all completed will output how much time
+# each section took to complete
+GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
+-o=MyCombinedPlaces.kml --stats --verbose
+```
+
+```powershell
+# Processes all the Google places lookups in parallel of 10 at a time. Note the more parallelism
+# used the more load is placed on your computer
+GoogleMapExport2KML.exe parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
+-o=MyCombinedPlaces.kml -p=10
+```
+
+
+## Errors and Solutions
+
+### Error: Index was out of range
+
+![Index out of range error](./GifInstructions/IndexError.png)
+
+#### Solution
+
+- Increase the timeout for looking up the place in Google. The default is 10s and that is usually enough time, but if google has congestion this could impact lookup time.
+- Run the job over again
+
+#### Screenshots
+
+##### Typical Run
+
+![Typical Run](./GifInstructions/typical.png)
+
+##### Dry Run
+
+![Dry Run](./GifInstructions/dryrun.png)
+
+##### Verbose
+
+![Verbose](./GifInstructions/verbose.gif)
+
+## Sample CSV File
+
+```text
+Title,Note,URL,Comment
+Dropped pin,,"https://www.google.com/maps/search/34.3948012,-111.1521886",
+"39°42'51.2""N 106°09'53.8""W",,"https://www.google.com/maps/search/39.714212,-106.164947",
+"39°43'00.7""N 106°09'41.6""W",,"https://www.google.com/maps/search/39.716858,-106.16156",
+"39°43'05.2""N 106°09'19.0""W",,"https://www.google.com/maps/search/39.718111,-106.155271",
+Pine Cove Campground,24/night FF,https://www.google.com/maps/place/Pine+Cove+Campground/data=!4m2!3m1!1s0x876a5eaa342bd02d:0xcabf37436295da63,
+Clear Creek Reservoir Campground,,https://www.google.com/maps/place/Clear+Creek+Reservoir+Campground/data=!4m2!3m1!1s0x876aba47279efd93:0x38cdc8f3e4649fad,
+```
+
+## Sample KML File
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.opengis.net/kml/2.50">
+  <Document>
+    <name>Camping</name>
+    <Placemark>
+      <description />
+      <name>Dropped pin</name>
+      <Point>
+        <coordinates>34.3948012,-111.1521886</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <description />
+      <name>Dropped pin</name>
+      <Point>
+        <coordinates>34.3754296,-111.1464524</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <description />
+      <name>Dropped pin</name>
+      <Point>
+        <coordinates>34.3425726,-110.9879697</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>
+```
+
+## Changelog
+
+| Date       | Change                                   | Version |
+| ---------- | ---------------------------------------- | ------- |
+| 02/03/2024 | Add support to convert Google CSV to KML | 1.0     |

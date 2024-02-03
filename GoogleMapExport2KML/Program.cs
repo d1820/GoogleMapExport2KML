@@ -37,16 +37,17 @@ app.Configure(config =>
 if (Debugger.IsAttached)
 {
     args = ["parse",
-        @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Done.csv",
+        @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Camping.csv",
         "--stopOnError",
         //"--noheader",
         //"--dryrun",
         "--stats",
         "--parallel=10",
+        //"--verbose",
         //"-c=3",
-        @"-o=Output\Done.kml"];
+        @"-o=Output\Camping.kml"];
 
-    args = ["parse", "--help"];
+    //args = ["parse", "--help"];
 }
 if (!args.Contains("--noheader"))
 {

@@ -39,7 +39,7 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         if (!fi.Exists)
         {
             var currentDirectory = Directory.GetCurrentDirectory();
-            fi = new FileInfo(Path.Combine(currentDirectory, fi.Name));
+            fi = new FileInfo(Path.Combine(currentDirectory, settings.OutputFile));
         }
         kml.Document.Name = fi.Name.Replace(fi.Extension, "");
 

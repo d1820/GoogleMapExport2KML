@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="GifInstructions\**" />
+    <EmbeddedResource Remove="GifInstructions\**" />
+    <None Remove="GifInstructions\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CsvHelper" Version="30.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.1" />
@@ -18,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="GifInstructions\" />
     <Folder Include="Output\" />
   </ItemGroup>
 
