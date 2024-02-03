@@ -1,20 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using GoogleMapExport2KML.Extensions;
 using GoogleMapExport2KML.Mappings;
 using GoogleMapExport2KML.Models;
-using OpenQA.Selenium;
 using Spectre.Console;
 using static GoogleMapExport2KML.Commands.ParseCommand;
 
 namespace GoogleMapExport2KML.Processors;
+
 public class GeolocationProcessor
 {
-    private readonly Mapper _mapper;
     private readonly int _delay = 200;
+    private readonly Mapper _mapper;
 
     public GeolocationProcessor(Mapper mapper)
     {
@@ -25,6 +20,7 @@ public class GeolocationProcessor
     {
         return $"Parsing {geoLocations.Count} Google geolocations. Est Time: {(geoLocations.Count * _delay).MsToTime()}";
     }
+
     public async Task<ProcessorResponse> ProcessAsync(List<CsvLineItem> geoLocations, ParseSettings settings)
     {
         var response = new ProcessorResponse();
@@ -44,7 +40,7 @@ public class GeolocationProcessor
                    ctx.Status(string.Format(msgFormat, i + 1));
                    ctx.Refresh();
                    await Task.Delay(_delay);
-                   if (settings.LogLevel == LogLevel.Debug)
+                   if (settings.Verbose)
                    {
                        AnsiConsole.MarkupLine($"Processing {line.DisplayName}");
                    }
@@ -56,7 +52,7 @@ public class GeolocationProcessor
                            RowIndex = line.RowNumber,
                            ColumnIndex = 0,
                            Row = line.DisplayName,
-                           Error = "THis is a longer error" //pm.ErrorMessage
+                           Error = pm.ErrorMessage
                        });
                        continue;
                    }

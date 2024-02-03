@@ -4,7 +4,6 @@ using OpenQA.Selenium.Chrome;
 
 namespace GoogleMapExport2KML.Factories;
 
-
 public class ChromeDriverPool
 {
     private readonly ObjectPool<KmlChromeDriver> _objectPool = new DefaultObjectPool<KmlChromeDriver>(new DefaultPooledObjectPolicy<KmlChromeDriver>());
@@ -15,6 +14,7 @@ public class ChromeDriverPool
         obj.SetPool(this);
         return obj;
     }
+
     public void Return(KmlChromeDriver driver)
     {
         _objectPool.Return(driver);
@@ -23,14 +23,11 @@ public class ChromeDriverPool
 
 public class KmlChromeDriver : IResettable, IDisposable
 {
-    private ChromeDriver _driver;
     private bool _disposedValue;
+    private ChromeDriver _driver;
     private ChromeDriverPool _pool;
 
-    public void SetPool(ChromeDriverPool pool)
-    {
-        _pool = pool;
-    }
+    public ChromeDriver Instance => _driver;
 
     public KmlChromeDriver()
     {
@@ -59,7 +56,17 @@ public class KmlChromeDriver : IResettable, IDisposable
         _driver = new ChromeDriver(svc, options);
     }
 
-    public ChromeDriver Instance => _driver;
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    public void SetPool(ChromeDriverPool pool)
+    {
+        _pool = pool;
+    }
 
     public bool TryReset()
     {
@@ -80,12 +87,5 @@ public class KmlChromeDriver : IResettable, IDisposable
             // TODO: set large fields to null
             _disposedValue = true;
         }
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 }

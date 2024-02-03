@@ -1,9 +1,7 @@
-using System.Diagnostics;
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
 using GoogleMapExport2KML.Models;
-using OpenQA.Selenium;
 using Spectre.Console;
 using static GoogleMapExport2KML.Commands.ParseCommand;
 
@@ -16,14 +14,13 @@ public class CsvProcessor
         return await AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
             .SpinnerStyle(Style.Parse("green bold"))
-            .StartAsync($"Parsing CSV files.", async ctx =>
+            .StartAsync("Parsing CSV files.", async ctx =>
             {
-
                 var tasks = new List<Task<CsvLineItemResponse>>();
                 foreach (var file in files)
                 {
                     var fi = new FileInfo(file);
-                    if (settings.LogLevel == LogLevel.Debug)
+                    if (settings.Verbose)
                     {
                         AnsiConsole.MarkupLine($"Parsing file {fi.Name}");
                     }
@@ -31,7 +28,7 @@ public class CsvProcessor
                     tasks.Add(ExecuteAsync(file));
                 }
 
-               return await Task.WhenAll(tasks);
+                return await Task.WhenAll(tasks);
             });
     }
 

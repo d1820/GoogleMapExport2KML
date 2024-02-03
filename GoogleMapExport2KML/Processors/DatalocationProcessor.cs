@@ -4,8 +4,6 @@ using GoogleMapExport2KML.Extensions;
 using GoogleMapExport2KML.Factories;
 using GoogleMapExport2KML.Mappings;
 using GoogleMapExport2KML.Models;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
 using Spectre.Console;
 using static GoogleMapExport2KML.Commands.ParseCommand;
 
@@ -15,11 +13,8 @@ public class DataLocationProcessor
 {
     private readonly ChromeDriverPool _chromeFactory;
     private readonly Mapper _mapper;
-    readonly object _lockObject = new object();
-    private int _counter;
     private int _delay = 3000;
-
-
+    private double _spinupFactor = 0.7; //amount to factor in for driver creation when estimating
 
     public DataLocationProcessor(Mapper mapper, ChromeDriverPool chromeFactory)
     {
@@ -27,19 +22,18 @@ public class DataLocationProcessor
         _chromeFactory = chromeFactory;
     }
 
-    public string EstimateRunTime(List<CsvLineItem> dataPlaces)
+    public string EstimateRunTime(List<CsvLineItem> dataPlaces, ParseSettings settings)
     {
-        return $"Parsing {dataPlaces.Count} Google data locations. Est Time: {(dataPlaces.Count * (_delay * 2.5)).MsToTime()}";
+        return $"Parsing {dataPlaces.Count} Google data locations. Est Time: {((dataPlaces.Count * (_delay * 2.5)) / (settings.MaxDegreeOfParallelism * _spinupFactor)).MsToTime()}";
     }
 
     public async Task<ProcessorResponse> ProcessAsync(List<CsvLineItem> dataPlaces, ParseSettings settings)
     {
-
         var response = new ProcessorResponse();
         if (dataPlaces.Count > 0)
         {
             var _queue = new ConcurrentBag<int>();
-            var msgFormat = $"Parsing {{0}} of {dataPlaces.Count} Google data locations. Est Time: {(dataPlaces.Count * (_delay * 2.5)).MsToTime()}";
+            var msgFormat = $"Parsing {{0}} of {dataPlaces.Count} Google data locations. Est Time: {((dataPlaces.Count * (_delay * 2.5)) / (settings.MaxDegreeOfParallelism * _spinupFactor)).MsToTime()}";
             return await AnsiConsole.Status()
            .Spinner(Spinner.Known.Circle)
            .SpinnerStyle(Style.Parse("blue bold"))
@@ -55,8 +49,7 @@ public class DataLocationProcessor
                        _queue.Add(1);
                        ctx.Status(string.Format(msgFormat, _queue.Count));
                        ctx.Refresh();
-                       //IncrementCounter(ctx, dataPlaces.Count);
-                       if (settings.LogLevel == LogLevel.Debug)
+                       if (settings.Verbose)
                        {
                            AnsiConsole.MarkupLine($"Processing {line.DisplayName}");
                        }
@@ -108,15 +101,5 @@ public class DataLocationProcessor
            });
         }
         return response;
-    }
-
-    private void IncrementCounter(StatusContext ctx, int total)
-    {
-        lock (_lockObject)
-        {
-            _counter++;
-            ctx.Status($"Parsing Google data locations {_counter} of {total}");
-            ctx.Refresh();
-        }
     }
 }

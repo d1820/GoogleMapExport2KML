@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="GifInstructions\" />
     <Folder Include="Output\" />
   </ItemGroup>
 

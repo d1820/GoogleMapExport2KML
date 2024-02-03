@@ -59,16 +59,22 @@ public class Mapper
         if (url.Contains("https://www.google.com/maps/place/"))
         {
             //coords: @38.6117469,-106.3202388,17z
-            var coords = url.Replace("https://www.google.com/maps/place/", "").Split("/").Take(2).Last();
-            var parts = coords.Replace("@", "").Split(",").Take(2).ToList();
-            if (parts == null || parts.Count == 0)
+            try
             {
-                return new ParsePointResult { ErrorMessage = $"Url does not match any existing parser. Skipping Point Parsing. Url: {url}" };
+                var coords = url.Replace("https://www.google.com/maps/place/", "").Split("/").Take(2).Last();
+                var parts = coords.Replace("@", "").Split(",").Take(2).ToList();
+                if (parts == null || parts.Count == 0)
+                {
+                    return new ParsePointResult { ErrorMessage = $"Url does not match any existing parser. Skipping Point Parsing. Url: {url}" };
+                }
+                var latitude = parts[0];
+                var longitude = parts[1];
+                return new ParsePointResult { Point = new Point($"{latitude},{longitude}") };
             }
-            var latitude = parts[0];
-            var longitude = parts[1];
-
-            return new ParsePointResult { Point = new Point($"{latitude},{longitude}") };
+            catch (Exception ex)
+            {
+                return new ParsePointResult { ErrorMessage = $"{ex.Message}. Url: {url}" };
+            }
         }
         return new ParsePointResult { ErrorMessage = $"Url does not match any existing parser. Skipping Point Parsing. Url: {url}" };
     }
