@@ -44,43 +44,69 @@ public class DataLocationProcessor
 
                var actionBlock = new ActionBlock<CsvLineItem>(async line =>
                {
-                   using (var kmlDriver = _chromeFactory.Get())
+                   var retryCount = 0;
+                   try
                    {
-                       _queue.Add(1);
-                       ctx.Status(string.Format(msgFormat, _queue.Count));
-                       ctx.Refresh();
-                       if (settings.Verbose)
-                       {
-                           AnsiConsole.MarkupLine($"Processing {line.DisplayName}");
-                       }
-
-                       kmlDriver.Instance.Navigate().GoToUrl(line.URL);
-
-                       var startTime = DateTime.Now;
-                       while (DateTime.Now - startTime < timeout)
-                       {
-                           await Task.Delay(_delay);
-                           if (kmlDriver.Instance.Url.Contains('@'))
-                           {
-                               break;
-                           }
-                       }
-
-                       line.URL = kmlDriver.Instance.Url;
-                       var pm = _mapper.MapToPlacement(line, settings.IncludeCommentInDescription);
-                       if (pm.HasError)
+                       await CallSelenium(settings, ctx, line, response, _queue, msgFormat, timeout);
+                   }
+                   catch (Exception ex)
+                   {
+                       if(retryCount > 3)
                        {
                            response.Errors.Add(new CsvLineItemError
                            {
                                RowIndex = line.RowNumber,
                                ColumnIndex = 0,
                                Row = line.DisplayName,
-                               Error = pm.ErrorMessage
+                               Error = $"Selenium Exception occurred. Unable to process row. Error {ex.Message}"
                            });
+                           return;
                        }
-                       else
+                       await CallSelenium(settings, ctx, line, response, _queue, msgFormat, timeout, "Retry ");
+                       retryCount++;
+                   }
+
+                   async Task CallSelenium(ParseSettings settings, StatusContext ctx, CsvLineItem line,
+                       ProcessorResponse response, ConcurrentBag<int> _queue, string msgFormat, TimeSpan timeout, string prefix = "")
+                   {
+                       using (var kmlDriver = _chromeFactory.Get())
                        {
-                           response.Placemarks.Add(pm.Placemark!);
+                           _queue.Add(1);
+                           ctx.Status(string.Format(msgFormat, _queue.Count));
+                           ctx.Refresh();
+                           if (settings.Verbose)
+                           {
+                               AnsiConsole.MarkupLine($"{prefix}Processing {line.DisplayName}");
+                           }
+
+                           kmlDriver.Instance.Navigate().GoToUrl(line.URL);
+
+                           var startTime = DateTime.Now;
+                           while (DateTime.Now - startTime < timeout)
+                           {
+                               await Task.Delay(_delay);
+                               if (kmlDriver.Instance.Url.Contains('@'))
+                               {
+                                   break;
+                               }
+                           }
+
+                           line.URL = kmlDriver.Instance.Url;
+                           var pm = _mapper.MapToPlacement(line, settings.IncludeCommentInDescription);
+                           if (pm.HasError)
+                           {
+                               response.Errors.Add(new CsvLineItemError
+                               {
+                                   RowIndex = line.RowNumber,
+                                   ColumnIndex = 0,
+                                   Row = line.DisplayName,
+                                   Error = pm.ErrorMessage
+                               });
+                           }
+                           else
+                           {
+                               response.Placemarks.Add(pm.Placemark!);
+                           }
                        }
                    }
                },

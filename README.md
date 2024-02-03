@@ -7,9 +7,11 @@ Parses .csv files generated from a google maps export of Saved Places. This fill
 
 ## Usage
 
-```powershell
-goog2kml parse [OPTIONS]
-```
+- Export your data from [Google Takeout](https://takeout.google.com)
+- Install this dotnet tool (DanTurco.GoogleMapExport2Kml) from [Nuget](https://www.nuget.org/) ```dotnet tool install DanTurco.GoogleMapExport2Kml --global```
+- Run commands to output your KML file. See below for command options and usage
+    - ```goog2kml parse [OPTIONS]```
+
 
 #### Options
 
@@ -133,6 +135,12 @@ Clear Creek Reservoir Campground,,https://www.google.com/maps/place/Clear+Creek+
   </Document>
 </kml>
 ```
+
+## Technical Notes
+
+Under this covers this uses Selenium to lookup the translation from Google place to Latitude and Longitude.
+Becuase of this we are sometimes at the mercy of your internet connection and Google web throttling. 
+Attempts are made to recover from these errors but sometimes may result in a crash of the tool.
 
 ## Changelog
 
