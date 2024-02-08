@@ -22,7 +22,7 @@ public class Mapper
             {
                 desc += ".";
             }
-            desc += (" " + csv.Comment ?? string.Empty);
+            desc += " " + csv.Comment ?? string.Empty;
         }
 
         var pointResult = MapToPoint(csv.URL);

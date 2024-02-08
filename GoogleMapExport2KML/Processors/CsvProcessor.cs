@@ -1,9 +1,9 @@
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
+using GoogleMapExport2KML.Commands;
 using GoogleMapExport2KML.Models;
 using Spectre.Console;
-using static GoogleMapExport2KML.Commands.ParseCommand;
 
 namespace GoogleMapExport2KML.Processors;
 
@@ -20,19 +20,19 @@ public class CsvProcessor
                 foreach (var file in files)
                 {
                     var fi = new FileInfo(file);
-                    if (settings.Verbose)
+                    if (settings.Verbose || settings.Trace)
                     {
                         AnsiConsole.MarkupLine($"Parsing file {fi.Name}");
                     }
                     ctx.Refresh();
-                    tasks.Add(ExecuteAsync(file));
+                    tasks.Add(ExecuteAsync(file, settings));
                 }
 
                 return await Task.WhenAll(tasks);
             });
     }
 
-    private async Task<CsvLineItemResponse> ExecuteAsync(string fileName)
+    private async Task<CsvLineItemResponse> ExecuteAsync(string fileName, ParseSettings settings)
     {
         var errors = new List<CsvLineItemError>();
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -54,7 +54,7 @@ public class CsvProcessor
             },
             MissingFieldFound = (args) =>
             {
-                Console.WriteLine(args.ToString());
+                AnsiConsole.MarkupLine(args.ToString() ?? "");
             },
         };
         var response = new CsvLineItemResponse();
@@ -66,6 +66,11 @@ public class CsvProcessor
             var lines = csv.GetRecordsAsync<CsvLineItem>();
             await foreach (var line in lines)
             {
+                line.URL = line.URL.Replace("@", "at");
+                if (settings.Trace)
+                {
+                    AnsiConsole.MarkupLine($"    Imported line: {line}");
+                }
                 response.Results.Add(line);
             }
         }

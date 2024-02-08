@@ -1,15 +1,15 @@
-using System.ComponentModel;
 using System.Diagnostics;
 using GoogleMapExport2KML.Extensions;
 using GoogleMapExport2KML.Models;
 using GoogleMapExport2KML.Processors;
 using GoogleMapExport2KML.Services;
+using Microsoft.Playwright;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace GoogleMapExport2KML.Commands;
 
-public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
+public class ParseCommand : AsyncCommand<ParseSettings>
 {
     private readonly CsvProcessor _csvProcessor;
     private readonly DataLocationProcessor _datalocationProcessor;
@@ -55,6 +55,11 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
             panel.Border = BoxBorder.Ascii;
             panel.Padding = new Padding(0, 1, 0, 1);
             AnsiConsole.Write(panel);
+        }
+
+        if(settings.MaxDegreeOfParallelism > 5)
+        {
+            AnsiConsole.MarkupLine($"[red bold]!!WARNING: Setting --parallel higher then 10 will cause excessive memory usage!!{Environment.NewLine}[/]");
         }
         List<CsvLineItemError> csvErrors = [];
         List<CsvLineItemResponse> csvResponses = [];
@@ -158,15 +163,15 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         {
             await _statExecutor.ExecuteAsync("Writing KML Output", () =>
             {
-                EnsureParentDirectories(fi.FullName);
+                EnsureParentDirectories(fi.FullName, settings);
                 _kmlService.CreateKML(kml, fi, settings);
                 return Task.CompletedTask;
             });
 
             sw.Stop();
-            Console.WriteLine("");
+            AnsiConsole.WriteLine("");
             AnsiConsole.MarkupLine($"[green bold]KML file(s) successfully generated. Placements: {kml.Document.Placemarks.Count}.[/]");
-            Console.WriteLine("");
+            AnsiConsole.WriteLine("");
             if (settings.IncludeStats)
             {
                 foreach (var stat in _statExecutor.GetResults())
@@ -202,7 +207,7 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         AnsiConsole.Write(table);
     }
 
-    private static void EnsureParentDirectories(string filePath)
+    private static void EnsureParentDirectories(string filePath, ParseSettings settings)
     {
         // Get the directory path without the file name
         string directoryPath = Path.GetDirectoryName(filePath);
@@ -211,66 +216,10 @@ public class ParseCommand : AsyncCommand<ParseCommand.ParseSettings>
         if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
         {
             Directory.CreateDirectory(directoryPath);
-            Console.WriteLine($"Parent directories created: {directoryPath}");
-        }
-    }
-
-    public class ParseSettings : KmlBaseSettings
-    {
-        [CommandOption("--dryrun")]
-        [Description("If true. Runs through the files and estimates times to completion.")]
-        public bool DryRun { get; set; }
-
-        [CommandOption("-f|--file <VALUES>")]
-        [Description("The csv files to parse")]
-        public string[] Files { get; set; }
-
-        [CommandOption("--includeComments")]
-        [Description("If true. Adds any comment from the csv column to the description")]
-        public bool IncludeCommentInDescription { get; set; }
-
-        [CommandOption("-s|--stats")]
-        [Description("If true. Outputs all the timing stats")]
-        public bool IncludeStats { get; set; }
-
-        [CommandOption("-p|--parallel")]
-        [Description("The number of threads used to process Google data locations. Default 4")]
-        public int MaxDegreeOfParallelism { get; set; } = 4;
-
-        [CommandOption("-o|--output")]
-        [Description("The output KML file.")]
-        public string OutputFile { get; set; }
-
-        [CommandOption("-c|--chunks")]
-        [Description("The number of placements to add per KML file. Files will be named based on number of files needed. Default ALL")]
-        public int PlacementsPerFile { get; set; } = -1;
-
-        [CommandOption("-t|--timeout")]
-        [Description("The timeout to wait on each lookup for coordinates from Google. Default 10s")]
-        public double QueryPlacesTimeoutSeconds { get; set; } = 10;
-
-        [CommandOption("--stopOnError")]
-        [Description("If true. Stops parsing on any csv row error.")]
-        public bool StopOnError { get; set; }
-
-        [CommandOption("-v|--verbose")]
-        [Description("If true. Increases the level of the output")]
-        public bool Verbose { get; set; }
-
-        public override ValidationResult Validate()
-        {
-            var filesValid = Files?.All(File.Exists);
-            var nameValid = !string.IsNullOrEmpty(OutputFile);
-            if (filesValid != true)
+            if (settings.Trace)
             {
-                return ValidationResult.Error("One or more files can not be found");
+                AnsiConsole.WriteLine($"Parent directories created: {directoryPath}");
             }
-            if (!nameValid)
-            {
-                return ValidationResult.Error("output file is required");
-            }
-
-            return ValidationResult.Success();
         }
     }
 }

@@ -1,8 +1,8 @@
+using GoogleMapExport2KML.Commands;
 using GoogleMapExport2KML.Extensions;
 using GoogleMapExport2KML.Mappings;
 using GoogleMapExport2KML.Models;
 using Spectre.Console;
-using static GoogleMapExport2KML.Commands.ParseCommand;
 
 namespace GoogleMapExport2KML.Processors;
 
@@ -40,7 +40,7 @@ public class GeolocationProcessor
                    ctx.Status(string.Format(msgFormat, i + 1));
                    ctx.Refresh();
                    await Task.Delay(_delay);
-                   if (settings.Verbose)
+                   if (settings.Trace)
                    {
                        AnsiConsole.MarkupLine($"Processing {line.DisplayName}");
                    }

@@ -29,4 +29,9 @@ public class CsvLineItem
     public string Title { get; set; }
 
     public string URL { get; set; }
+
+    public override string ToString()
+    {
+        return $"Row: {RowNumber}. Title: {Title}. Url: {URL}";
+    }
 }

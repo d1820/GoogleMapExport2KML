@@ -1,6 +1,6 @@
 using System.Xml.Serialization;
+using GoogleMapExport2KML.Commands;
 using GoogleMapExport2KML.Models;
-using static GoogleMapExport2KML.Commands.ParseCommand;
 
 namespace GoogleMapExport2KML.Services;
 

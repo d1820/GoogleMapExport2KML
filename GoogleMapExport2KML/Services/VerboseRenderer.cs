@@ -1,19 +1,20 @@
+using GoogleMapExport2KML.Commands;
 using Spectre.Console;
 
-namespace GoogleMapExport2KML.Commands;
+namespace GoogleMapExport2KML.Services;
 
 public class VerboseRenderer
 {
-    public void Render(ParseCommand.ParseSettings settings, Action action)
+    public void Render(ParseSettings settings, Action action)
     {
-        if (settings.Verbose)
+        if (settings.Verbose || settings.Trace)
         {
             AnsiConsole.MarkupLine("[yellow bold]---------------------------------[/]");
         }
         action.Invoke();
-        if (settings.Verbose)
+        if (settings.Verbose || settings.Trace)
         {
-            Console.WriteLine("");
+            AnsiConsole.WriteLine("");
         }
     }
 }
