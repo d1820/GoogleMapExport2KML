@@ -34,7 +34,7 @@ public class ParseSettings : KmlBaseSettings
     [Description("The output KML file.")]
     public string OutputFile { get; set; }
 
-    [CommandOption("-c|--chunks")]
+    [CommandOption("--placements-per-file")]
     [Description("The number of placements to add per KML file. Files will be named based on number of files needed. Default ALL")]
     public int PlacementsPerFile { get; set; } = -1;
 
@@ -42,9 +42,9 @@ public class ParseSettings : KmlBaseSettings
     [Description("The timeout to wait on each lookup for coordinates from Google. Default 10s")]
     public double QueryPlacesTimeoutSeconds { get; set; } = 10;
 
-    [CommandOption("-w|--wait-timeout")]
-    [Description("The timeout to wait for the page to load from Google. Default 300s")]
-    public double QueryPlacesWaitTimeoutSeconds { get; set; } = 300;
+    //[CommandOption("-w|--wait-timeout")]
+    //[Description("The timeout to wait for the page to load from Google. Default 300s")]
+    //public double QueryPlacesWaitTimeoutSeconds { get; set; } = 300;
 
     [CommandOption("--stopOnError")]
     [Description("If true. Stops parsing on any csv row error.")]

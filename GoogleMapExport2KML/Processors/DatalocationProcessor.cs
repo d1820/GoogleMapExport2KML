@@ -19,8 +19,8 @@ public class DataLocationProcessor
     private readonly IWebDriverPool _webFactory;
     private readonly StatExecutor _statExecutor;
     private readonly Mapper _mapper;
-    private int _delay = 3000;
-    private double _spinupFactor = 0.7; //amount to factor in for driver creation when estimating
+    private int _delay = 3500;
+    private double _spinupFactor = 1.3; //amount to factor in for driver creation when estimating
 
     public DataLocationProcessor(Mapper mapper, IWebDriverPool webFactory, StatExecutor statExecutor)
     {
@@ -31,7 +31,7 @@ public class DataLocationProcessor
 
     public string EstimateRunTime(List<CsvLineItem> dataPlaces, ParseSettings settings)
     {
-        return $"Parsing {dataPlaces.Count} Google data locations. Est Time: {(dataPlaces.Count * (_delay * 2.5) / (settings.MaxDegreeOfParallelism * _spinupFactor)).MsToTime()}";
+        return $"Parsing {dataPlaces.Count} Google data locations. Est Time: {(dataPlaces.Count * (_delay * _spinupFactor)).MsToTime()}";
     }
 
     public async Task<ProcessorResponse> ProcessAsync(List<CsvLineItem> dataPlaces, ParseSettings settings)
@@ -41,7 +41,7 @@ public class DataLocationProcessor
         if (dataPlaces.Count > 0)
         {
             var _queue = new ConcurrentBag<int>();
-            var msgFormat = $"Parsing {{0}} of {dataPlaces.Count} Google data locations. Est Time: {(dataPlaces.Count * (_delay * 2.5) / (settings.MaxDegreeOfParallelism * _spinupFactor)).MsToTime()}";
+            var msgFormat = $"Parsing {{0}} of {dataPlaces.Count} Google data locations. Est Time: {(dataPlaces.Count * (_delay * _spinupFactor)).MsToTime()}";
             return await AnsiConsole.Status()
            .Spinner(Spinner.Known.Circle)
            .SpinnerStyle(Style.Parse("blue bold"))
@@ -53,7 +53,6 @@ public class DataLocationProcessor
                    var timeout = TimeSpan.FromSeconds(settings.QueryPlacesTimeoutSeconds);
                    var chunkSize = (int)Math.Ceiling((double)dataPlaces.Count / settings.BatchCount);
                    var batches = dataPlaces.Chunk(settings.BatchCount).ToArray();
-                   //var test = dataPlaces.Chunk(settings.BatchCount).ToArray();
                    AnsiConsole.MarkupLine($"Created {chunkSize} batches of {settings.BatchCount} for processing");
                    var batchIdx = 1;
                    foreach (var batch in batches)
@@ -73,9 +72,6 @@ public class DataLocationProcessor
                        });
                        batchIdx++;
                    }
-                   //actionBlock.Complete();
-                   //// Wait for all messages to propagate through the network.
-                   //await actionBlock.Completion;
                }
                catch (TaskCanceledException)
                {

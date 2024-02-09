@@ -51,15 +51,20 @@ public class ParseCommand : AsyncCommand<ParseSettings>
         }
         else
         {
-            var panel = new Panel("               DRY RUN               ");
-            panel.Border = BoxBorder.Ascii;
-            panel.Padding = new Padding(0, 1, 0, 1);
-            AnsiConsole.Write(panel);
+            var rule = new Rule("[bold darkorange3]DRY RUN[/]");
+            rule.Centered();
+            AnsiConsole.Write(rule);
+            AnsiConsole.WriteLine("");
         }
 
-        if(settings.MaxDegreeOfParallelism > 5)
+        if (settings.MaxDegreeOfParallelism > 10)
         {
-            AnsiConsole.MarkupLine($"[red bold]!!WARNING: Setting --parallel higher then 10 will cause excessive memory usage!!{Environment.NewLine}[/]");
+            AnsiConsole.MarkupLine($"[red bold]!!WARNING: Setting --parallel higher then 10 can cause excessive memory usage!!{Environment.NewLine}[/]");
+        }
+
+        if (settings.BatchCount > 10)
+        {
+            AnsiConsole.MarkupLine($"[red bold]!!WARNING: Setting --batch higher then 10 can cause excessive memory usage!!{Environment.NewLine}[/]");
         }
         List<CsvLineItemError> csvErrors = [];
         List<CsvLineItemResponse> csvResponses = [];
@@ -82,7 +87,7 @@ public class ParseCommand : AsyncCommand<ParseSettings>
             }
         }
 
-        _verboseRenderer.Render(settings, () => AnsiConsole.MarkupLine($"[yellow bold]Processed {csvResponses.Count} files.[/]"));
+        _verboseRenderer.Render(settings, () => AnsiConsole.MarkupLine($"[yellow bold]CSV files processed: {csvResponses.Count}[/]"));
 
         var errorCode = await _statExecutor.ExecuteAsync("Processing Latitude Longitude Data", async () =>
         {
@@ -110,7 +115,7 @@ public class ParseCommand : AsyncCommand<ParseSettings>
                         await File.WriteAllLinesAsync(Path.Combine(fi.Directory!.FullName, "error.log"), geoResponse.Errors.Select(s => s.ToString()));
                     }
                 }
-                _verboseRenderer.Render(settings, () => AnsiConsole.MarkupLine($"[yellow bold]Processed {geoResponse.Placemarks.Count} geolocations.[/]"));
+                _verboseRenderer.Render(settings, () => AnsiConsole.MarkupLine($"[yellow bold]Google geolocations processed: {geoResponse.Placemarks.Count}[/]"));
                 kml.Document.Placemarks.AddRange(geoResponse.Placemarks);
             }
             return 0;
@@ -145,7 +150,7 @@ public class ParseCommand : AsyncCommand<ParseSettings>
                         await File.WriteAllLinesAsync(Path.Combine(fi.Directory!.FullName, "error.log"), dataResponse.Errors.Select(s => s.ToString()));
                     }
                 }
-                _verboseRenderer.Render(settings, () => AnsiConsole.MarkupLine($"[yellow bold]Processed {dataResponse.Placemarks.Count} places.[/]"));
+                _verboseRenderer.Render(settings, () => AnsiConsole.MarkupLine($"[yellow bold]Goolge places processed: {dataResponse.Placemarks.Count}.[/]"));
                 kml.Document.Placemarks.AddRange(dataResponse.Placemarks);
             }
             return 0;
@@ -167,19 +172,16 @@ public class ParseCommand : AsyncCommand<ParseSettings>
                 _kmlService.CreateKML(kml, fi, settings);
                 return Task.CompletedTask;
             });
-
             sw.Stop();
+            if (settings.IncludeStats)
+            {
+                var finalRow = new Stat($"Total Processing Time", sw.ElapsedMilliseconds);
+                DisplayStatsTable(_statExecutor.GetResults(), "Runtime Stats", finalRow);
+            }
+
             AnsiConsole.WriteLine("");
             AnsiConsole.MarkupLine($"[green bold]KML file(s) successfully generated. Placements: {kml.Document.Placemarks.Count}.[/]");
             AnsiConsole.WriteLine("");
-            if (settings.IncludeStats)
-            {
-                foreach (var stat in _statExecutor.GetResults())
-                {
-                    AnsiConsole.MarkupLine($"{stat.Event}: {stat.TotalMs.MsToTime()}");
-                }
-            }
-            AnsiConsole.MarkupLine($"Total Processing Time: {sw.ElapsedMilliseconds.MsToTime()}");
             AnsiConsole.MarkupLine($"File(s) written to [yellow]{fi.Directory!.FullName}[/]");
         }
 
@@ -188,14 +190,13 @@ public class ParseCommand : AsyncCommand<ParseSettings>
 
     private static void DisplayErrorTable(List<CsvLineItemError> csvErrors, string title)
     {
-        AnsiConsole.MarkupLine($"{title}: [bold red]{csvErrors.Count}[/]");
         //output error rows in table
         var table = new Table();
-        table.Border(TableBorder.Rounded);
-        table.LeftAligned();
+        table.Title($"{title}: [bold red](Errors: {csvErrors.Count})[/]");
+        table.Alignment(Justify.Left).Ascii2Border();
         // Add some columns
-        table.AddColumn("RowIndex").Centered();
-        table.AddColumn("ColumnIndex").Centered();
+        table.AddColumn("RowIndex", c => c.Alignment(Justify.Center));
+        table.AddColumn("ColumnIndex", c => c.Alignment(Justify.Center));
         table.AddColumn("Error");
         table.AddColumn("Row");
 
@@ -203,6 +204,26 @@ public class ParseCommand : AsyncCommand<ParseSettings>
         {
             table.AddRow(line.RowIndex.ToString(), line.ColumnIndex.ToString(), line.Error ?? "Unknown", line.Row ?? "No Row Data");
         }
+
+        AnsiConsole.Write(table);
+    }
+
+    private static void DisplayStatsTable(IEnumerable<Stat> stats, string title, Stat finalRow)
+    {
+        //output error rows in table
+        var table = new Table();
+        table.Title($"[bold yellow3_1]{title}[/]");
+        table.Ascii2Border().Alignment(Justify.Left);
+        // Add some columns
+        table.AddColumn("Event");
+        table.AddColumn("Time",c=>c.Alignment(Justify.Center));
+
+        foreach (var stat in stats)
+        {
+            table.AddRow(stat.Event, stat.TotalMs.MsToTime());
+        }
+        table.AddEmptyRow();
+        table.AddRow($"[bold yellow3_1]{finalRow.Event}[/]", $"[bold yellow3_1]{finalRow.TotalMs.MsToTime()}[/]");
 
         AnsiConsole.Write(table);
     }

@@ -3,7 +3,7 @@ using Microsoft.Playwright;
 
 namespace GoogleMapExport2KML.Automation;
 
-public class PlaywrightBrowser : Interfaces.IBrowser, IDisposable
+public class PlaywrightBrowser : Interfaces.IBrowser
 {
     public KmlPlaywrightDriver Driver { get; }
 

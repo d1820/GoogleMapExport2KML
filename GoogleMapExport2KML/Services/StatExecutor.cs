@@ -48,6 +48,11 @@ public class StatExecutor
         return _stats;
     }
 
+    public void AddStat(Stat stat)
+    {
+        _stats.Add(stat);
+    }
+
     public void Reset()
     {
         _stopWatch.Reset();

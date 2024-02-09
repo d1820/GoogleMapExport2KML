@@ -10,8 +10,6 @@ namespace GoogleMapExport2KML.Automation;
 public class PlaywrightDriverPool : IWebDriverPool
 {
     private ParseSettings _settings;
-    //private ObjectPool<KmlChromeDriver> _objectPool;
-    private Process _proc;
     private ConcurrentBag<KmlPlaywrightDriver> _objectPool = [];
 
     public async Task InitializeAsync(ParseSettings settings)
@@ -21,10 +19,6 @@ public class PlaywrightDriverPool : IWebDriverPool
         for (var i = 0; i < settings.MaxDegreeOfParallelism; i++) //create 1 driver per parallelism
         {
             var playwright = await Playwright.CreateAsync();
-            //var browser = await playwright.Webkit.LaunchAsync(new() { Headless = true });
-            //var page = await browser.NewPageAsync();
-            //await page.GotoAsync("https://playwright.dev/dotnet");
-            //await page.ScreenshotAsync(new() { Path = "screenshot.png" });
             var driver = new KmlPlaywrightDriver(playwright, settings);
             driver.SetPool(this);
             driver.SetBrowser(new PlaywrightBrowser(driver));

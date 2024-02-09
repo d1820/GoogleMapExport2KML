@@ -76,8 +76,6 @@ public class KmlChromeDriver : IResettable, IDriver
 
     public bool TryReset()
     {
-        //AnsiConsole.MarkupLine($"Closing Window {_id}");
-        //Instance.Close(); //close the window
         return true;
     }
 

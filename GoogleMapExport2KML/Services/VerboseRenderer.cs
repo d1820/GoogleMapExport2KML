@@ -9,11 +9,13 @@ public class VerboseRenderer
     {
         if (settings.Verbose || settings.Trace)
         {
+            AnsiConsole.WriteLine("");
             AnsiConsole.MarkupLine("[yellow bold]---------------------------------[/]");
         }
         action.Invoke();
         if (settings.Verbose || settings.Trace)
         {
+            AnsiConsole.MarkupLine("[yellow bold]---------------------------------[/]");
             AnsiConsole.WriteLine("");
         }
     }

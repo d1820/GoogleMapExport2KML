@@ -3,7 +3,7 @@
 Parses .csv files generated from a google maps export of Saved Places. This fills the gpa of allowing you to import valid KML files from google maps into other mapping applications.
 
 
-![GoogleMapExport2Kml](./GifInstructions/GoogleMapExport2Kml.gif)
+![GoogleMapExport2Kml](./GifInstructions/typical.gif)
 
 ## Usage
 
@@ -15,22 +15,23 @@ Parses .csv files generated from a google maps export of Saved Places. This fill
 
 #### Options
 
-| Short Command | Long Command      | Description                                                                                                    |
-| ------------- | ----------------- | -------------------------------------------------------------------------------------------------------------- |
-| -h            | --help            | Prints help information                                                                                        |
-| -v            | --version         | Prints version information                                                                                     |
-|               | --noheader        | If true. Does not display the banner on command execute                                                        |
-| -f            | --file            | The csv files to parse                                                                                         |
-|               | --includeComments | If true. Adds any comment from the csv column to the description                                               |
-| -v            | --verbose         | If true. Increases the level of the output                                                                     |
-|               | --trace           | If true. Outputs all the tracing for each processing line                                                      |
-| -s            | --stats           | If true. Outputs all the timing stats                                                                          |
-| -o            | --output          | The output KML file                                                                                            |
-| -t            | --timeout         | The timeout to wait on each lookup for coordinates from Google. Default 10s                                    |
-| -p            | --parallel        | The number of threads used to process Google data locations. Default 4                                         |
-|               | --stopOnError     | If true. Stops parsing on any csv row error                                                                    |
-|               | --dryrun          | If true. Runs through the files and estimates times to completion                                              |
-| -c            | --chunks          | The number of placements to add per KML file. Files will be named based on number of files needed. Default ALL |
+| Short Command | Long Command          | Description                                                                                                    |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| -h            | --help                | Prints help information                                                                                        |
+| -v            | --version             | Prints version information                                                                                     |
+|               | --noheader            | If true. Does not display the banner on command execute                                                        |
+| -f            | --file                | The csv files to parse                                                                                         |
+|               | --includeComments     | If true. Adds any comment from the csv column to the description                                               |
+| -v            | --verbose             | If true. Increases the level of the output                                                                     |
+|               | --trace               | If true. Outputs all the tracing for each processing line                                                      |
+| -s            | --stats               | If true. Outputs all the timing stats                                                                          |
+| -o            | --output              | The output KML file                                                                                            |
+| -t            | --timeout             | The timeout to wait on each lookup for coordinates from Google. Default 10s                                    |
+| -p            | --parallel            | The number of threads used to process Google data locations. Default 4                                         |
+| -b            | --batch               | The number of batches used to process Google data locations. Default 10                                         |
+|               | --stopOnError         | If true. Stops parsing on any csv row error                                                                    |
+|               | --dryrun              | If true. Runs through the files and estimates times to completion                                              |
+|               | --placements-per-file | The number of placements to add per KML file. Files will be named based on number of files needed. Default ALL |
 
 #### Example Commands
 
@@ -50,14 +51,14 @@ goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 # Creates multiple output files with 500 placemarks per file. This is useful for mapping
 # applications that limit the amount of placemarks that can be imported at 1 time
 goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
--o=MyCombinedPlaces.kml -c=500
+-o=MyCombinedPlaces.kml --placements-per-file=500
 ```
 
 ```powershell
 # Outputs all the lines and files being processed. Once all completed will output how much time
 # each section took to complete
 goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
--o=MyCombinedPlaces.kml --stats --verbose
+-o=MyCombinedPlaces.kml --stats --trace
 ```
 
 ```powershell
@@ -83,7 +84,7 @@ goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 
 ##### Typical Run
 
-![Typical Run](./GifInstructions/typical.png)
+![Typical Run](./GifInstructions/typical.gif)
 
 ##### Dry Run
 

@@ -1,6 +1,6 @@
-﻿namespace GoogleMapExport2KML.Interfaces;
+namespace GoogleMapExport2KML.Interfaces;
 
-public interface IBrowser
+public interface IBrowser: IDisposable
 {
     string Id { get; }
 

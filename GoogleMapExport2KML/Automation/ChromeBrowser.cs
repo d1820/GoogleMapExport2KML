@@ -1,8 +1,8 @@
-﻿using GoogleMapExport2KML.Interfaces;
+using GoogleMapExport2KML.Interfaces;
 
 namespace GoogleMapExport2KML.Automation;
 
-public class ChromeBrowser : IBrowser, IDisposable
+public class ChromeBrowser : IBrowser
 {
     public KmlChromeDriver Driver { get; }
 
