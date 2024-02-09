@@ -44,7 +44,7 @@ public class ParseSettings : KmlBaseSettings
 
     //[CommandOption("-w|--wait-timeout")]
     //[Description("The timeout to wait for the page to load from Google. Default 300s")]
-    //public double QueryPlacesWaitTimeoutSeconds { get; set; } = 300;
+    public double QueryPlacesWaitTimeoutSeconds { get; set; } = 300;
 
     [CommandOption("--stopOnError")]
     [Description("If true. Stops parsing on any csv row error.")]
