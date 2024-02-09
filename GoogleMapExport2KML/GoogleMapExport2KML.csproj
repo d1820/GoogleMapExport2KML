@@ -8,6 +8,11 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>goog2kml</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
+    <RepositoryUrl>https://github.com/d1820/GoogleMapExport2KML</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>Icon.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/d1820/GoogleMapExport2KML</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -36,6 +41,11 @@
 
   <ItemGroup>
     <Folder Include="Output\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="Icon.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>
