@@ -1,6 +1,6 @@
 # GoogleMapExport2KML
 
-Parses .csv files generated from a google maps export of Saved Places. This fills the gpa of allowing you to import valid KML files from google maps into other mapping applications.
+Parses .csv files generated from a google maps export of Saved Places. This fills the gap in Google of allowing you to import valid KML files from google maps into other mapping applications.
 
 
 ![GoogleMapExport2Kml](./GifInstructions/typical.gif)
@@ -28,7 +28,7 @@ Parses .csv files generated from a google maps export of Saved Places. This fill
 | -o            | --output              | The output KML file                                                                                            |
 | -t            | --timeout             | The timeout to wait on each lookup for coordinates from Google. Default 10s                                    |
 | -p            | --parallel            | The number of threads used to process Google data locations. Default 4                                         |
-| -b            | --batch               | The number of batches used to process Google data locations. Default 10                                         |
+| -b            | --batch               | The number of batches used to process Google data locations. Default 10                                        |
 |               | --stopOnError         | If true. Stops parsing on any csv row error                                                                    |
 |               | --dryrun              | If true. Runs through the files and estimates times to completion                                              |
 |               | --placements-per-file | The number of placements to add per KML file. Files will be named based on number of files needed. Default ALL |
@@ -140,9 +140,9 @@ Clear Creek Reservoir Campground,,https://www.google.com/maps/place/Clear+Creek+
 
 ## Technical Notes
 
-Under this covers this uses Selenium to lookup the translation from Google place to Latitude and Longitude.
+Under this covers this uses Playwright to lookup the translation from Google place to Latitude and Longitude.
 Becuase of this we are sometimes at the mercy of your internet connection and Google web throttling. 
-Attempts are made to recover from these errors but sometimes may result in a crash of the tool.
+Attempts are made to recover from these errors but sometimes it may result in a crash of the tool.
 
 ## Changelog
 
