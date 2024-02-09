@@ -3,7 +3,7 @@
 Parses .csv files generated from a google maps export of Saved Places. This fills the gap in Google of allowing you to import valid KML files from google maps into other mapping applications.
 
 
-![GoogleMapExport2Kml](./GifInstructions/typical.gif)
+![GoogleMapExport2Kml](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/typical.gif?raw=true)
 
 ## Usage
 
@@ -73,7 +73,7 @@ goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 
 ### Error: Index was out of range
 
-![Index out of range error](./GifInstructions/IndexError.png)
+![Index out of range error](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/IndexError.png?raw=true)
 
 #### Solution
 
@@ -84,15 +84,21 @@ goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 
 ##### Typical Run
 
-![Typical Run](./GifInstructions/typical.gif)
+![Typical Run](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/typical.gif?raw=true)
 
 ##### Dry Run
 
-![Dry Run](./GifInstructions/dryrun.png)
+![Dry Run](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/dryrun.png?raw=true)
 
 ##### Verbose
 
-![Verbose](./GifInstructions/verbose.gif)
+![Verbose](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/verbose.gif?raw=true)
+
+##### Trace
+
+![Verbose](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/trace.gif?raw=true)
+
+
 
 ## Sample CSV File
 

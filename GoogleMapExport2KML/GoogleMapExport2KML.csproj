@@ -45,7 +45,6 @@
 
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="\"/>
-    <None Include="..\GifInstructions\*" Pack="true" PackagePath="\GifInstructions"/>
     <None Include="Icon.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
