@@ -57,7 +57,7 @@ public class DataLocationProcessor
                    var batchIdx = 1;
                    foreach (var batch in batches)
                    {
-                       await _statExecutor.ExecuteAsync($"Processing Latitude Longitude Data Batch {batchIdx}", async () =>
+                       await _statExecutor.ExecuteAsync($"Processing Google Place Lookups Batch {batchIdx}", async () =>
                        {
                            var actionBlock = CreateActionBLock(settings, ctx, response, cts, _queue, msgFormat, timeout);
                            await _webFactory.InitializeAsync(settings);
