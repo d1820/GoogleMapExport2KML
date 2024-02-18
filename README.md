@@ -1,6 +1,6 @@
 # GoogleMapExport2KML
 
-Parses .csv files generated from a google maps export of Saved Places. This fills the gap in Google of allowing you to import valid KML files from google maps into other mapping applications.
+Parses .csv files generated from a Google maps export of Saved Places. This fills the gap in Google of allowing you to import valid KML files from google maps into other mapping applications.
 
 
 ![GoogleMapExport2Kml](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/typical.gif?raw=true)
@@ -9,6 +9,9 @@ Parses .csv files generated from a google maps export of Saved Places. This fill
 
 - Export your data from [Google Takeout](https://takeout.google.com)
 - Install this dotnet tool (DanTurco.GoogleMapExport2Kml) from [Nuget](https://www.nuget.org/) ```dotnet tool install DanTurco.GoogleMapExport2Kml --global```
+
+### Parse
+
 - Run commands to output your KML file. See below for command options and usage
     - ```goog2kml parse [OPTIONS]```
 
@@ -20,8 +23,8 @@ Parses .csv files generated from a google maps export of Saved Places. This fill
 | -h            | --help                | Prints help information                                                                                        |
 | -v            | --version             | Prints version information                                                                                     |
 |               | --noheader            | If true. Does not display the banner on command execute                                                        |
-| -f            | --file                | The csv files to parse                                                                                         |
-|               | --includeComments     | If true. Adds any comment from the csv column to the description                                               |
+| -f            | --file                | The CSV files to parse                                                                                         |
+|               | --includeComments     | If true. Adds any comment from the CSV column to the description                                               |
 | -v            | --verbose             | If true. Increases the level of the output                                                                     |
 |               | --trace               | If true. Outputs all the tracing for each processing line                                                      |
 | -s            | --stats               | If true. Outputs all the timing stats                                                                          |
@@ -29,7 +32,7 @@ Parses .csv files generated from a google maps export of Saved Places. This fill
 | -t            | --timeout             | The timeout to wait on each lookup for coordinates from Google. Default 10s                                    |
 | -p            | --parallel            | The number of threads used to process Google data locations. Default 4                                         |
 | -b            | --batch               | The number of batches used to process Google data locations. Default 10                                        |
-|               | --stopOnError         | If true. Stops parsing on any csv row error                                                                    |
+|               | --stopOnError         | If true. Stops parsing on any CSV row error                                                                    |
 |               | --dryrun              | If true. Runs through the files and estimates times to completion                                              |
 |               | --placements-per-file | The number of placements to add per KML file. Files will be named based on number of files needed. Default ALL |
 
@@ -69,38 +72,27 @@ goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 ```
 
 
-## Errors and Solutions
+#### Screen shots
 
-### Error: Index was out of range
-
-![Index out of range error](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/IndexError.png?raw=true)
-
-#### Solution
-
-- Increase the timeout for looking up the place in Google. The default is 10s and that is usually enough time, but if google has congestion this could impact lookup time.
-- Run the job over again
-
-#### Screenshots
-
-##### Typical Run
+##### Typical Run - Parse
 
 ![Typical Run](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/typical.gif?raw=true)
 
-##### Dry Run
+##### Dry Run - Parse
 
 ![Dry Run](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/dryrun.png?raw=true)
 
-##### Verbose
+##### Verbose - Parse
 
 ![Verbose](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/verbose.gif?raw=true)
 
-##### Trace
+##### Trace - Parse
 
 ![Verbose](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/trace.gif?raw=true)
 
 
 
-## Sample CSV File
+#### Sample CSV File
 
 ```text
 Title,Note,URL,Comment
@@ -112,7 +104,7 @@ Pine Cove Campground,24/night FF,https://www.google.com/maps/place/Pine+Cove+Cam
 Clear Creek Reservoir Campground,,https://www.google.com/maps/place/Clear+Creek+Reservoir+Campground/data=!4m2!3m1!1s0x876aba47279efd93:0x38cdc8f3e4649fad,
 ```
 
-## Sample KML File
+#### Sample KML File
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -144,13 +136,54 @@ Clear Creek Reservoir Campground,,https://www.google.com/maps/place/Clear+Creek+
 </kml>
 ```
 
+
+### Split
+
+- Run commands to output your KML file. See below for command options and usage
+    - ```goog2kml split [OPTIONS]```
+
+
+#### Options
+
+| Short Command | Long Command          | Description                                                                                                    |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| -h            | --help                | Prints help information                                                                                        |
+| -v            | --version             | Prints version information                                                                                     |
+|               | --noheader            | If true. Does not display the banner on command execute                                                        |
+| -f            | --file                | The KML file to split                                                                                          |
+| -v            | --verbose             | If true. Increases the level of the output                                                                     |
+|               | --trace               | If true. Outputs all the tracing for each processing line                                                      |
+| -o            | --output              | The output KML Directory                                                                                       |
+|               | --stopOnError         | If true. Stops parsing on any CSV row error                                                                    |
+|               | --dryrun              | If true. Runs through the file split process to see what gets created                                          |
+|               | --placements-per-file | The number of placements to add per KML file. Files will be named based on number of files needed. Default ALL |
+
+#### Example Commands
+
+```powershell
+# Typical command
+goog2kml split -f=C:\downloads\myplaces.kml -o="Output\Split" --stopOnError --placements-per-file=500
+```
+
+## Errors and Solutions
+
+### Error: Index was out of range - Parse
+
+![Index out of range error](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/IndexError.png?raw=true)
+
+#### Solution
+
+- Increase the timeout for looking up the place in Google. The default is 10s and that is usually enough time, but if google has congestion this could impact lookup time.
+- Run the job over again
+
+
 ## Technical Notes
 
 Under this covers this uses Playwright to lookup the translation from Google place to Latitude and Longitude.
-Becuase of this we are sometimes at the mercy of your internet connection and Google web throttling. 
+Because of this we are sometimes at the mercy of your INTERNET connection and Google web throttling. 
 Attempts are made to recover from these errors but sometimes it may result in a crash of the tool.
 
-## Changelog
+## Change log
 
 | Date       | Change                                   | Version |
 | ---------- | ---------------------------------------- | ------- |
