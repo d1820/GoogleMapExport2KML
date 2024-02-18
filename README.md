@@ -154,4 +154,5 @@ Attempts are made to recover from these errors but sometimes it may result in a 
 
 | Date       | Change                                   | Version |
 | ---------- | ---------------------------------------- | ------- |
-| 02/03/2024 | Add support to convert Google CSV to KML | 1.0     |
+| 02/03/2024 | Add support to split existing KML file   | 1.0.2   |
+| 02/03/2024 | Add support to convert Google CSV to KML | 1.0.1   |
