@@ -33,6 +33,11 @@ app.Configure(config =>
     config.AddCommand<ParseCommand>("parse")
         .WithDescription("Parses .csv files generated from a google maps export of Saved Places")
         .WithExample("parse", @"-f=C:\downloads\myplaces.csv", @"-f=C:\downloads\myfavoriteplaces.csv", "-o=MyCombinedPlaces.kml");
+
+    config.AddCommand<SplitCommand>("split")
+       .WithDescription("Splits an existing KML file into sub files.")
+       .WithExample("split", @"-f=C:\downloads\myplaces.kml", "-o=OutputDir/MyPlaces/");
+
 #if DEBUG
     config.PropagateExceptions();
     config.ValidateExamples();
@@ -40,19 +45,27 @@ app.Configure(config =>
 });
 if (Debugger.IsAttached)
 {
-    args = ["parse",
-        @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Camping.csv",
-        "--stopOnError",
-        //"--noheader",
-        "--dryrun",
-        "--stats",
-        "--parallel=10",
-        "-t=120",
-        "-b=10",
-        //"--trace",
-        "--verbose",
-        //"-c=3",
-        @"-o=Output\Camping.kml"];
+    //args = ["parse",
+    //    @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Camping.csv",
+    //    "--stopOnError",
+    //    //"--noheader",
+    //    //"--dryrun",
+    //    "--stats",
+    //    "--parallel=10",
+    //    "-t=120",
+    //    "-b=10",
+    //    //"--trace",
+    //    "--verbose",
+    //    @"-o=Output\Camping.kml"];
+
+    //args = ["split",
+    //    @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Output\Done.kml",
+    //    "--stopOnError",
+    //    //"--noheader",
+    //    //"--dryrun",
+    //    "--placements-per-file=500",
+    //    "--trace",
+    //    @"-o=Output\Test\SubPath"];
 
     //args = ["parse", "--help"];
 

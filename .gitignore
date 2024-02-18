@@ -397,3 +397,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /GoogleMapExport2KML/**/*.nupkg
+/favicon_io.zip

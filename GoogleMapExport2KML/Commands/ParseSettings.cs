@@ -46,18 +46,6 @@ public class ParseSettings : KmlBaseSettings
     //[Description("The timeout to wait for the page to load from Google. Default 300s")]
     public double QueryPlacesWaitTimeoutSeconds { get; set; } = 300;
 
-    [CommandOption("--stopOnError")]
-    [Description("If true. Stops parsing on any csv row error.")]
-    public bool StopOnError { get; set; }
-
-    [CommandOption("-v|--verbose")]
-    [Description("If true. Increases the level of the output")]
-    public bool Verbose { get; set; }
-
-    [CommandOption("--trace")]
-    [Description("If true. Outputs all the tracing for each processing line")]
-    public bool Trace { get; set; }
-
     public override ValidationResult Validate()
     {
         var filesValid = Files?.All(File.Exists);

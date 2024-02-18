@@ -3,7 +3,6 @@ using GoogleMapExport2KML.Extensions;
 using GoogleMapExport2KML.Models;
 using GoogleMapExport2KML.Processors;
 using GoogleMapExport2KML.Services;
-using Microsoft.Playwright;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -35,13 +34,13 @@ public class ParseCommand : AsyncCommand<ParseSettings>
     public override async Task<int> ExecuteAsync(CommandContext context, ParseSettings settings)
     {
         var kml = new Kml();
-        var fi = new FileInfo(settings.OutputFile);
-        if (!fi.Exists)
+        var outputFileInfo = new FileInfo(settings.OutputFile);
+        if (!outputFileInfo.Exists)
         {
             var currentDirectory = Directory.GetCurrentDirectory();
-            fi = new FileInfo(Path.Combine(currentDirectory, settings.OutputFile));
+            outputFileInfo = new FileInfo(Path.Combine(currentDirectory, settings.OutputFile));
         }
-        kml.Document.Name = fi.Name.Replace(fi.Extension, "");
+        kml.Document.Name = outputFileInfo.Name.Replace(outputFileInfo.Extension, "");
 
         var sw = new Stopwatch();
         var eventSW = new Stopwatch();
@@ -83,7 +82,7 @@ public class ParseCommand : AsyncCommand<ParseSettings>
             }
             else
             {
-                await File.WriteAllLinesAsync(Path.Combine(fi.Directory!.FullName, "error.log"), csvErrors.Select(s => s.ToString()));
+                await File.WriteAllLinesAsync(Path.Combine(outputFileInfo.Directory!.FullName, "error.log"), csvErrors.Select(s => s.ToString()));
             }
         }
 
@@ -112,7 +111,7 @@ public class ParseCommand : AsyncCommand<ParseSettings>
                     }
                     else
                     {
-                        await File.WriteAllLinesAsync(Path.Combine(fi.Directory!.FullName, "error.log"), geoResponse.Errors.Select(s => s.ToString()));
+                        await File.WriteAllLinesAsync(Path.Combine(outputFileInfo.Directory!.FullName, "error.log"), geoResponse.Errors.Select(s => s.ToString()));
                     }
                 }
                 _verboseRenderer.Render(settings, () => AnsiConsole.MarkupLine($"[yellow bold]Google geolocations processed: {geoResponse.Placemarks.Count}[/]"));
@@ -147,7 +146,7 @@ public class ParseCommand : AsyncCommand<ParseSettings>
                     }
                     else
                     {
-                        await File.WriteAllLinesAsync(Path.Combine(fi.Directory!.FullName, "error.log"), dataResponse.Errors.Select(s => s.ToString()));
+                        await File.WriteAllLinesAsync(Path.Combine(outputFileInfo.Directory!.FullName, "error.log"), dataResponse.Errors.Select(s => s.ToString()));
                     }
                 }
                 _verboseRenderer.Render(settings, () => AnsiConsole.MarkupLine($"[yellow bold]Goolge places processed: {dataResponse.Placemarks.Count}.[/]"));
@@ -162,14 +161,14 @@ public class ParseCommand : AsyncCommand<ParseSettings>
 
         if (settings.DryRun)
         {
-            AnsiConsole.MarkupLine($"File(s) would be written to [yellow]{fi.Directory!.FullName}[/]");
+            AnsiConsole.MarkupLine($"File(s) would be written to [yellow]{outputFileInfo.Directory!.FullName}[/]");
         }
         else
         {
             await _statExecutor.ExecuteAsync("Writing KML Output", () =>
             {
-                EnsureParentDirectories(fi.FullName, settings);
-                _kmlService.CreateKML(kml, fi, settings);
+                EnsureParentDirectories(outputFileInfo.FullName, settings);
+                _kmlService.CreateKML(kml, outputFileInfo, settings);
                 return Task.CompletedTask;
             });
             sw.Stop();
@@ -182,7 +181,7 @@ public class ParseCommand : AsyncCommand<ParseSettings>
             AnsiConsole.WriteLine("");
             AnsiConsole.MarkupLine($"[green bold]KML file(s) successfully generated. Placements: {kml.Document.Placemarks.Count}.[/]");
             AnsiConsole.WriteLine("");
-            AnsiConsole.MarkupLine($"File(s) written to [yellow]{fi.Directory!.FullName}[/]");
+            AnsiConsole.MarkupLine($"File(s) written to [yellow]{outputFileInfo.Directory!.FullName}[/]");
         }
 
         return 0;
