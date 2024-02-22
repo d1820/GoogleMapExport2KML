@@ -20,10 +20,10 @@
     <Authors>Dan Turco</Authors>
     <Company>Just In Time Coders</Company>
     <Product>GoogleMapExport2KML</Product>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <PackageTags>Google Maps;KML;CSV Exports;Maps;DotNet</PackageTags>
     <Description>
-      Parses .csv files generated from a google maps export of Saved Places. This fills the gpa of allowing you to import valid KML files from google maps into other mapping applications.
+      Parses .csv files generated from a Google maps export of Saved Places. This fills the gps of allowing you to import valid KML files from Google maps into other mapping applications.
     </Description>
   </PropertyGroup>
 
@@ -44,8 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="\"/>
-    <None Include="Icon.png" Pack="true" PackagePath="\"/>
+    <None Include="Icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

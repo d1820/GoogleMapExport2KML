@@ -59,7 +59,7 @@ public class CsvProcessor
         };
         var response = new CsvLineItemResponse();
 
-        using (var reader = new StreamReader(fileName))
+        using (var reader = new StreamReader(fileName, new FileStreamOptions { Access = FileAccess.Read }))
         using (var csv = new CsvReader(reader, config))
         {
             csv.Context.RegisterClassMap<CsvLineItemMap>();

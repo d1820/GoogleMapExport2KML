@@ -7,6 +7,13 @@ namespace GoogleMapExport2KML.Services;
 
 public class KMLService
 {
+    public XmlSerializerNamespaces GetNamespace()
+    {
+        var namespaces = new XmlSerializerNamespaces();
+        namespaces.Add("xsd", "https://schemas.opengis.net/kml/2.3/ogckml23.xsd");
+        return namespaces;
+    }
+
     public void CreateKML(Kml kml, FileInfo outputFile, ParseSettings settings)
     {
         var of = outputFile.FullName;
@@ -19,7 +26,7 @@ public class KMLService
             // Create XmlSerializer
             var serializer = new XmlSerializer(typeof(Kml));
             using TextWriter writer = new StreamWriter($"{of}");
-            serializer.Serialize(writer, kml);
+            serializer.Serialize(writer, kml, GetNamespace());
             return;
         }
 

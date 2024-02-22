@@ -45,18 +45,18 @@ app.Configure(config =>
 });
 if (Debugger.IsAttached)
 {
-    //args = ["parse",
-    //    @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Camping.csv",
-    //    "--stopOnError",
-    //    //"--noheader",
-    //    //"--dryrun",
-    //    "--stats",
-    //    "--parallel=10",
-    //    "-t=120",
-    //    "-b=10",
-    //    //"--trace",
-    //    "--verbose",
-    //    @"-o=Output\Camping.kml"];
+    args = ["parse",
+        @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Trailhead.csv",
+        "--stopOnError",
+        //"--noheader",
+        //"--dryrun",
+        "--stats",
+        "--parallel=10",
+        "-t=120",
+        "-b=10",
+        //"--trace",
+        //"--verbose",
+        @"-o=Output\Trailhead.kml"];
 
     //args = ["split",
     //    @"-f=C:\Users\d1820\Downloads\takeout-20240120T191337Z-001\Takeout\Saved\Output\Done.kml",

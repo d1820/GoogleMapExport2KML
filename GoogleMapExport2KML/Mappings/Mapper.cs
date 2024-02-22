@@ -52,8 +52,12 @@ public class Mapper
         if (url.Contains("https://www.google.com/maps/search/"))
         {
             var coords = url.Replace("https://www.google.com/maps/search/", "");
-            //parse coords
-            return new ParsePointResult { Point = new Point(coords) };
+            var splitResult = SplitCoords(url, coords);
+            if (!string.IsNullOrEmpty(splitResult.error))
+            {
+                return new ParsePointResult { ErrorMessage = splitResult.error };
+            }
+            return new ParsePointResult { Point = new Point($"{splitResult.longitude},{splitResult.latitude}") }; //this order is specific to the spec
         }
 
         if (url.Contains("https://www.google.com/maps/place/"))
@@ -62,14 +66,12 @@ public class Mapper
             try
             {
                 var coords = url.Replace("https://www.google.com/maps/place/", "").Split("/").Take(2).Last();
-                var parts = coords.Replace("@", "").Split(",").Take(2).ToList();
-                if (parts == null || parts.Count == 0)
+                var splitResult = SplitCoords(url, coords);
+                if (!string.IsNullOrEmpty(splitResult.error))
                 {
-                    return new ParsePointResult { ErrorMessage = $"Url does not match any existing parser. Skipping Point Parsing. Url: {url}" };
+                    return new ParsePointResult { ErrorMessage = splitResult.error };
                 }
-                var latitude = parts[0];
-                var longitude = parts[1];
-                return new ParsePointResult { Point = new Point($"{latitude},{longitude}") };
+                return new ParsePointResult { Point = new Point($"{splitResult.longitude},{splitResult.latitude}") }; //this order is specific to the spec
             }
             catch (Exception ex)
             {
@@ -77,5 +79,15 @@ public class Mapper
             }
         }
         return new ParsePointResult { ErrorMessage = $"Url does not match any existing parser. Skipping Point Parsing. Url: {url}" };
+    }
+
+    private static (string? latitude, string? longitude, string? error) SplitCoords(string url, string coords)
+    {
+        var parts = coords.Replace("@", "").Split(",").Take(2).ToList();
+        if (parts == null || parts.Count == 0)
+        {
+            return (null, null, $"Url does not match any existing parser. Skipping Point Parsing. Url: {url}");
+        }
+        return (parts[0]?.Trim(), parts[1]?.Trim(), null);
     }
 }
