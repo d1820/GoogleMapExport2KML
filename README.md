@@ -3,7 +3,7 @@
 Parses .csv files generated from a Google maps export of Saved Places. This fills the gap in Google of allowing you to import valid KML files from google maps into other mapping applications.
 
 
-![GoogleMapExport2Kml](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/typical.gif?raw=true)
+![GoogleMapExport2Kml](https://raw.githubusercontent.com/d1820/GoogleMapExport2KML/main/GifInstructions/typical.gif)
 
 ## Usage
 
@@ -76,19 +76,19 @@ goog2kml parse -f=C:\downloads\myplaces.csv -f=C:\downloads\myfavoriteplaces.csv
 
 ##### Typical Run - Parse
 
-![Typical Run](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/typical.gif?raw=true)
+![Typical Run](https://raw.githubusercontent.com/d1820/GoogleMapExport2KML/main/GifInstructions/typical.gif)
 
 ##### Dry Run - Parse
 
-![Dry Run](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/dryrun.png?raw=true)
+![Dry Run](https://raw.githubusercontent.com/d1820/GoogleMapExport2KML/main/GifInstructions/dryrun.png)
 
 ##### Verbose - Parse
 
-![Verbose](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/verbose.gif?raw=true)
+![Verbose](https://raw.githubusercontent.com/d1820/GoogleMapExport2KML/main/GifInstructions/verbose.gif)
 
 ##### Trace - Parse
 
-![Verbose](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/trace.gif?raw=true)
+![Verbose](https://raw.githubusercontent.com/d1820/GoogleMapExport2KML/main/GifInstructions/trace.gif)
 
 
 
@@ -169,11 +169,11 @@ goog2kml split -f=C:\downloads\myplaces.kml -o="Output\Split" --stopOnError --pl
 
 ### Error: Index was out of range - Parse
 
-![Index out of range error](https://github.com/d1820/GoogleMapExport2KML/blob/ac9c689f9df0b1c023bd574eb1ac3d2677a4cb3b/GifInstructions/IndexError.png?raw=true)
+![Index out of range error](https://raw.githubusercontent.com/d1820/GoogleMapExport2KML/main/GifInstructions/IndexError.png)
 
 #### Solution
 
-- Increase the timeout for looking up the place in Google. The default is 10s and that is usually enough time, but if google has congestion this could impact lookup time.
+- Increase the timeout for looking up the place in Google. The default is 10s and that is usually enough time, but if Google has congestion this could impact lookup time.
 - Run the job over again
 
 
@@ -187,6 +187,7 @@ Attempts are made to recover from these errors but sometimes it may result in a 
 
 | Date       | Change                                   | Version |
 | ---------- | ---------------------------------------- | ------- |
+| 04/16/2024 | Bug fix for readme links                 | 1.0.4   |
 | 02/22/2024 | Bug fix with inverted Lat/Long           | 1.0.3   |
 | 02/18/2024 | Add support to split existing KML file   | 1.0.2   |
 | 02/03/2024 | Add support to convert Google CSV to KML | 1.0.1   |

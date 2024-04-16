@@ -20,7 +20,7 @@
     <Authors>Dan Turco</Authors>
     <Company>Just In Time Coders</Company>
     <Product>GoogleMapExport2KML</Product>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <PackageTags>Google Maps;KML;CSV Exports;Maps;DotNet</PackageTags>
     <Description>
       Parses .csv files generated from a Google maps export of Saved Places. This fills the gps of allowing you to import valid KML files from Google maps into other mapping applications.
